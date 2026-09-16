@@ -1795,7 +1795,30 @@
                 this.navigate('inventory');
             }
         };
+                const app = {
+    init: async function() {
+        try {
+            // นำโค้ด firebaseConfig ของคุณมาวางแทนที่ตรงนี้ครับ
+            const firebaseConfig = {
+                apiKey: "AIzaSyCz0aIXLyL1GMvT44KFQgJ04Qhh9HbqlOM",
+                authDomain: "tkp7-pro-stock.firebaseapp.com",
+                projectId: "tkp7-pro-stock",
+                storageBucket: "tkp7-pro-stock.firebasestorage.app",
+                messagingSenderId: "298437497471",
+                appId: "1:298437497471:web:e6bd202f7a1a6644a4654a",
+                measurementId: "G-FY9XXNNWVP"
+            };
 
+            if (firebaseConfig.projectId) {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.firestore();
+                console.log("Firebase Connected Successfully (Online Mode)");
+            }
+        } catch (e) {
+            console.warn("Firebase initialization warning:", e);
+        }
         window.onload = function() {
             app.init();
         };
