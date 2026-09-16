@@ -641,7 +641,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">แนบรูปภาพอุปกรณ์</label>
-                            <input type="file" id="tool-image-file" accept="image/*" class="w-full px-4 py-3 border rounded-xl text-xs bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100">
+                            <input type="file" id="tool-image-file" accept="image/*" class="w-full px-4 py-3 border rounded-xl text-xs bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" onchange="app.compressImage(event)">
                             <input type="hidden" id="tool-image">
                         </div>
                         <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-md transition">
@@ -836,19 +836,9 @@
                     this.login(email);
                 });
 
-                document.getElementById('form-add-tool').addEventListener('submit', async (e) => {
+                document.getElementById('form-add-tool').addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const fileInput = document.getElementById('tool-image-file');
-                    if (fileInput.files && fileInput.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = (uploadEvent) => {
-                            document.getElementById('tool-image').value = uploadEvent.target.result;
-                            this.saveTool();
-                        };
-                        reader.readAsDataURL(fileInput.files[0]);
-                    } else {
-                        this.saveTool();
-                    }
+                    this.saveTool();
                 });
 
                 document.getElementById('form-ev-charger').addEventListener('submit', (e) => {
@@ -975,7 +965,6 @@
             initRealtimeListeners: function() {
                 if (!db) return;
 
-                // 1. ฟังข้อมูล Tools แบบ Real-time
                 db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools')
                     .onSnapshot((snapshot) => {
                         toolsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -986,21 +975,18 @@
                         this.renderDashboard();
                     });
 
-                // 2. ฟังข้อมูล EV Chargers แบบ Real-time
                 db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers')
                     .onSnapshot((snapshot) => {
                         evChargersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         this.renderDashboard();
                     });
 
-                // 3. ฟังข้อมูล Withdrawals แบบ Real-time
                 db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals')
                     .onSnapshot((snapshot) => {
                         withdrawHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         this.renderDashboard();
                     });
 
-                // 4. ฟังข้อมูล Imports แบบ Real-time
                 db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports')
                     .onSnapshot((snapshot) => {
                         importHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1020,6 +1006,45 @@
                 for (let t of defaultTools) {
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(t.id).set(t);
                 }
+            },
+
+            compressImage: function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 600;
+                        const MAX_HEIGHT = 600;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        document.getElementById('tool-image').value = compressedDataUrl;
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             },
 
             updateLowStockBadges: function() {
@@ -1250,7 +1275,7 @@
                     document.getElementById('tool-name').value = tool.name || '';
                     document.getElementById('tool-category').value = tool.category || 'ทั่วไป';
                     document.getElementById('tool-price').value = tool.price || '';
-                    document.getElementById('tool-qty').value = '10';
+                    document.getElementById('tool-qty').value = tool.qty || 0;
                     document.getElementById('tool-image').value = tool.image || '';
                 }
             },
@@ -1280,11 +1305,87 @@
                             <td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toLocaleString()}</td>
                             <td class="p-3 text-right space-x-1">
                                 <button onclick="app.requestWithdraw('${t.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition"><i class="fas fa-hand-holding mr-1"></i> เบิก</button>
-                                ${isAdmin ? `<button onclick="app.deleteTool('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบอุปกรณ์ (Admin เท่านั้น)"><i class="fas fa-trash"></i></button>` : ''}
+                                ${isAdmin ? `
+                                    <button onclick="app.editToolModal('${t.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition" title="แก้ไขอุปกรณ์"><i class="fas fa-edit mr-1"></i> แก้ไข</button>
+                                    <button onclick="app.deleteTool('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบอุปกรณ์"><i class="fas fa-trash"></i></button>
+                                ` : ''}
                             </td>
                         </tr>
                     `;
                 }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่พบรายการอุปกรณ์ในคลัง</td></tr>`;
+            },
+
+            editToolModal: async function(toolId) {
+                if (!currentUser || currentUser.role !== 'Admin') {
+                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขข้อมูลอุปกรณ์ได้', 'warning');
+                    return;
+                }
+
+                const tool = toolsData.find(t => t.id === toolId);
+                if (!tool) return;
+
+                const { value: formValues } = await Swal.fire({
+                    title: 'แก้ไขข้อมูลอุปกรณ์',
+                    html: `
+                        <div class="space-y-3 text-left">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">รหัสอุปกรณ์ (SKU)</label>
+                                <input id="swal-sku" class="swal2-input !m-0 !w-full !text-sm" value="${tool.sku || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ชื่ออุปกรณ์</label>
+                                <input id="swal-name" class="swal2-input !m-0 !w-full !text-sm" value="${tool.name || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">หมวดหมู่</label>
+                                <select id="swal-category" class="swal2-input !m-0 !w-full !text-sm">
+                                    <option value="ทั่วไป" ${tool.category === 'ทั่วไป' ? 'selected' : ''}>อุปกรณ์ทั่วไป</option>
+                                    <option value="ไฟฟ้า" ${tool.category === 'ไฟฟ้า' ? 'selected' : ''}>อุปกรณ์ไฟฟ้า</option>
+                                    <option value="เครื่องมือช่าง" ${tool.category === 'เครื่องมือช่าง' ? 'selected' : ''}>เครื่องมือช่าง</option>
+                                    <option value="ความปลอดภัย" ${tool.category === 'ความปลอดภัย' ? 'selected' : ''}>ความปลอดภัย</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ราคาต่อหน่วย (บาท)</label>
+                                <input id="swal-price" type="number" step="0.01" class="swal2-input !m-0 !w-full !text-sm" value="${tool.price || 0}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">จำนวนคงเหลือ</label>
+                                <input id="swal-qty" type="number" class="swal2-input !m-0 !w-full !text-sm" value="${tool.qty || 0}">
+                            </div>
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการแก้ไข',
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonText: 'ยกเลิก',
+                    preConfirm: () => {
+                        return {
+                            sku: document.getElementById('swal-sku').value.trim(),
+                            name: document.getElementById('swal-name').value.trim(),
+                            category: document.getElementById('swal-category').value,
+                            price: Number(document.getElementById('swal-price').value),
+                            qty: Number(document.getElementById('swal-qty').value)
+                        }
+                    }
+                });
+
+                if (formValues) {
+                    tool.sku = formValues.sku;
+                    tool.name = formValues.name;
+                    tool.category = formValues.category;
+                    tool.price = formValues.price;
+                    tool.qty = formValues.qty;
+
+                    if (db) {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).set(tool);
+                    }
+
+                    this.updateLowStockBadges();
+                    this.renderInventoryTable();
+                    Swal.fire('สำเร็จ', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success');
+                }
             },
 
             deleteTool: async function(toolId) {
