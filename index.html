@@ -807,10 +807,26 @@
         const app = {
             init: async function() {
                 try {
-                    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                        const firebaseConfig = JSON.parse(__firebase_config);
+                    // กำหนดค่า Firebase Config โดยตรง เพื่อให้ใช้งานบน GitHub Pages / มือถือ ได้ออนไลน์ทันที
+                    const firebaseConfig = {
+                        apiKey: "YOUR_API_KEY",
+                        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+                        projectId: "YOUR_PROJECT_ID",
+                        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+                        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                        appId: "YOUR_APP_ID"
+                    };
+
+                    if (firebaseConfig.projectId && firebaseConfig.projectId !== "YOUR_PROJECT_ID") {
                         if (!firebase.apps.length) {
                             firebase.initializeApp(firebaseConfig);
+                        }
+                        db = firebase.firestore();
+                        console.log("Firebase Connected Successfully (Online Mode)");
+                    } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                        const firebaseConfigParsed = JSON.parse(__firebase_config);
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfigParsed);
                         }
                         db = firebase.firestore();
                     }
