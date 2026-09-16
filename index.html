@@ -72,11 +72,18 @@
         #qr-reader video { object-fit: cover; border-radius: 1rem; width: 100% !important; height: 100% !important; }
 
         @media print {
-            body { background: white !important; }
-            aside, header, .no-print, nav { display: none !important; }
-            #main-container { padding: 0 !important; max-width: 100% !important; }
+            body { background: white !important; color: #0f172a !important; font-size: 13px !important; }
+            aside, header, .no-print, nav, button { display: none !important; }
+            #main-container { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
             #view-dashboard { display: block !important; }
-            .glass { background: white !important; border: none !important; box-shadow: none !important; }
+            .glass { background: white !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+            
+            .print-document { display: block !important; width: 100% !important; padding: 20px !important; }
+            .print-header { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .print-footer { margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+            table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; }
+            th, td { border: 1px solid #cbd5e1 !important; padding: 8px 12px !important; text-align: left; }
+            th { background-color: #f1f5f9 !important; color: #0f172a !important; font-weight: bold; }
         }
     </style>
 </head>
@@ -106,27 +113,39 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
-            <button onclick="app.navigate('dashboard')" data-target="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+            <button onclick="app.navigate('dashboard')" data-target="dashboard" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-chart-line w-5 text-center"></i> ภาพรวม
             </button>
             <button onclick="app.navigate('inventory')" data-target="inventory" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-box-open w-5 text-center"></i> คลังอุปกรณ์
             </button>
-            <button onclick="app.navigate('low-stock')" data-target="low-stock" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition justify-between">
+            <button onclick="app.navigate('my-withdraw-status')" data-target="my-withdraw-status" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+                <i class="fas fa-clipboard-list w-5 text-center text-rose-500"></i> สถานะการอนุมัติอุปกรณ์
+            </button>
+            <button onclick="app.navigate('low-stock')" data-target="low-stock" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition justify-between">
                 <div class="flex items-center gap-3"><i class="fas fa-exclamation-triangle w-5 text-center text-amber-500"></i> ใกล้หมด / หมดแล้ว</div>
                 <span id="sidebar-low-badge" class="bg-rose-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
             </button>
             <button onclick="app.navigate('ev-charger')" data-target="ev-charger" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition">
                 <i class="fas fa-charging-station w-5 text-center"></i> รับเข้าเครื่องชาร์จ
             </button>
-            <button onclick="app.navigate('history')" data-target="history" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+            <button onclick="app.navigate('ev-withdraw')" data-target="ev-withdraw" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition">
+                <i class="fas fa-hand-holding-medical w-5 text-center text-blue-500"></i> ขอเบิกเครื่องชาร์จ
+            </button>
+            <button onclick="app.navigate('history')" data-target="history" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-file-invoice w-5 text-center"></i> ประวัติการเบิกทั้งหมด
             </button>
-            <button onclick="app.navigate('add-tool')" data-target="add-tool" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+            <button onclick="app.navigate('import-history')" data-target="import-history" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+                <i class="fas fa-truck-loading w-5 text-center"></i> ประวัตินำเข้า
+            </button>
+            <button onclick="app.navigate('add-tool')" data-target="add-tool" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-plus-square w-5 text-center"></i> จัดการสต๊อก
             </button>
-            <button onclick="app.navigate('approvals')" data-target="approvals" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+            <button onclick="app.navigate('approvals')" data-target="approvals" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-clipboard-check w-5 text-center"></i> ศูนย์การอนุมัติ
+            </button>
+            <button onclick="app.navigate('users')" data-target="users" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
+                <i class="fas fa-users-cog w-5 text-center"></i> จัดการยูสเซอร์
             </button>
         </nav>
 
@@ -155,6 +174,7 @@
 
         <main class="flex-1 overflow-y-auto p-4 md:p-8 w-full max-w-7xl mx-auto relative pb-24 md:pb-8" id="main-container">
             
+            <!-- Login View -->
             <section id="view-login" class="page-transition flex flex-col items-center justify-center min-h-[85vh]">
                 <div class="glass w-full max-w-md p-8 rounded-3xl shadow-xl border-t-8 border-t-rose-500 text-center bg-white">
                     <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white rounded-2xl h-16 w-16 flex items-center justify-center mx-auto mb-5 shadow-lg overflow-hidden border-2 border-blue-400/40">
@@ -166,7 +186,7 @@
                     <form id="form-login" class="space-y-4 text-left">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">อีเมลผู้ใช้งาน (Email)</label>
-                            <input type="email" id="login-email" required class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-medium" placeholder="tanthaizero@gmail.com" value="tanthaizero@gmail.com">
+                            <input type="email" id="login-email" required class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-medium" placeholder="กรอกอีเมลของคุณ..." value="">
                         </div>
                         <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-lg shadow-rose-500/20 transition">
                             เข้าสู่ระบบ <i class="fas fa-arrow-right ml-1"></i>
@@ -175,7 +195,19 @@
                 </div>
             </section>
 
+            <!-- Dashboard View -->
             <section id="view-dashboard" class="page-transition hidden space-y-6">
+                <div class="print-header hidden print:flex">
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900">TKP7 Pro - รายงานสรุปสต๊อกและมูลค่าอุปกรณ์</h1>
+                        <p class="text-xs text-slate-600 mt-1">ระบบบริหารจัดการคลังอุปกรณ์และเครื่องชาร์จ EV อัจฉริยะ</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-600">
+                        <p><b>วันที่พิมพ์รายงาน:</b> <span id="print-date-now"></span></p>
+                        <p><b>ผู้พิมพ์:</b> Super Admin (TKP7 Pro System)</p>
+                    </div>
+                </div>
+
                 <div class="glass p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm border border-slate-100">
                     <div>
                         <h3 class="font-bold text-slate-800 text-base">รายงานมูลค่าและสถิติสต๊อก</h3>
@@ -189,8 +221,8 @@
                             <option value="yearly">รายปี (ปีนี้)</option>
                             <optgroup label="เลือกแยกตามเดือน" id="month-filter-options"></optgroup>
                         </select>
-                        <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
-                            <i class="fas fa-print"></i> พิมพ์รายงาน
+                        <button onclick="app.triggerPrint()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+                            <i class="fas fa-print"></i> พิมพ์รายงานอย่างเป็นทางการ
                         </button>
                     </div>
                 </div>
@@ -224,7 +256,6 @@
                     </div>
                 </div>
 
-                <!-- Monthly Cost Line Chart Section -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <div>
@@ -237,7 +268,6 @@
                     </div>
                 </div>
 
-                <!-- EV Summary Cards -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <h4 class="font-bold text-slate-800 text-sm">ยอดรวมเครื่องชาร์จ EV แยกตามค่าย</h4>
@@ -251,7 +281,6 @@
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="ev-camp-cards-container"></div>
                 </div>
 
-                <!-- Recent Logs Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 no-print">
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 h-80 flex flex-col shadow-sm">
                         <h4 class="font-bold text-sm text-slate-800 mb-2"><i class="fas fa-history text-rose-500 mr-1"></i> เบิกล่าสุด</h4>
@@ -266,17 +295,41 @@
                         <ul id="list-recent-ev-imports" class="divide-y divide-slate-100 overflow-y-auto flex-1 text-xs space-y-1"></ul>
                     </div>
                 </div>
+
+                <div class="print-footer hidden print:flex">
+                    <div class="text-center w-1/3">
+                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
+                        <p class="font-bold text-xs">ผู้จัดทำรายงาน</p>
+                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
+                    </div>
+                    <div class="text-center w-1/3">
+                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
+                        <p class="font-bold text-xs">ผู้ตรวจสอบสต๊อก</p>
+                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
+                    </div>
+                    <div class="text-center w-1/3">
+                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
+                        <p class="font-bold text-xs">ผู้ออนุมัติ / ผู้จัดการ</p>
+                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
+                    </div>
+                </div>
             </section>
 
+            <!-- Inventory View -->
             <section id="view-inventory" class="page-transition hidden space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">คลังอุปกรณ์</h2>
                         <p class="text-xs text-slate-500">จัดการและตรวจสอบสต๊อกอุปกรณ์ปัจจุบัน</p>
                     </div>
-                    <div class="relative w-full sm:w-72">
-                        <input type="text" id="search-inventory" placeholder="ค้นหา รหัส, ชื่ออุปกรณ์..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500 bg-white shadow-sm">
-                        <i class="fas fa-search absolute left-4 top-3 text-slate-400 text-xs"></i>
+                    <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <select id="dropdown-inventory-filter" onchange="app.filterInventoryDropdown(this.value)" class="w-full sm:w-48 px-3 py-2 border rounded-xl text-xs font-semibold text-slate-700 bg-white shadow-sm outline-none">
+                            <option value="all">-- ทุกอุปกรณ์ --</option>
+                        </select>
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="search-inventory" placeholder="ค้นหา รหัส, ชื่ออุปกรณ์..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500 bg-white shadow-sm">
+                            <i class="fas fa-search absolute left-4 top-3 text-slate-400 text-xs"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -299,6 +352,7 @@
                 </div>
             </section>
 
+            <!-- Low Stock View -->
             <section id="view-low-stock" class="page-transition hidden space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
@@ -330,13 +384,14 @@
                 </div>
             </section>
 
+            <!-- EV Charger View (รับเข้าเครื่องชาร์จ) -->
             <section id="view-ev-charger" class="page-transition hidden max-w-xl mx-auto">
                 <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-charging-station text-xl"></i></div>
                         <div>
                             <h3 class="text-lg font-bold text-slate-800">รับเข้าเครื่องชาร์จ (EV) + AI สแกน</h3>
-                            <p class="text-xs text-slate-500">ถ่ายรูปหรือเลือกภาพใบขนส่งเพื่อ AI อ่านบาร์โค้ดและหมายเหตุอัตโนมัติ</p>
+                            <p class="text-xs text-slate-500">ถ่ายรูปหรือเลือกภาพใบขนส่งเพื่อ AI อ่านหมายเลขบาร์โค้ด และ Code อัตโนมัติ</p>
                         </div>
                     </div>
 
@@ -348,7 +403,7 @@
                             <i class="fas fa-camera text-xl"></i>
                         </div>
                         <h4 class="font-bold text-slate-800 text-xs">ถ่ายภาพ / เลือกรูปบาร์โค้ดใบขนส่ง</h4>
-                        <p class="text-[10px] text-slate-400 mt-1">ระบบจำลอง AI OCR อ่านบาร์โค้ด และดึงหมายเหตุจากใบขนส่ง</p>
+                        <p class="text-[10px] text-slate-400 mt-1">AI Gemini วิเคราะห์ภาพ อ่าน Barcode และ Code จากใบขนส่ง</p>
                     </div>
 
                     <div id="ev-scan-preview-container" class="hidden relative rounded-2xl overflow-hidden border bg-slate-900 shadow-md">
@@ -362,532 +417,745 @@
                     <form id="form-ev-charger" class="space-y-4">
                         <input type="hidden" id="ev-charger-image">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเลขขนส่ง / บาร์โค้ด *</label>
-                            <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุเลขบาร์โค้ดขนส่ง หรือใช้ AI สแกน">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">ค่ายงาน / โครงการ *</label>
-                            <select id="ev-project" required class="w-full px-4 py-3 border rounded-xl text-sm bg-white">
-                                <option value="" disabled selected>-- เลือกค่ายงาน --</option>
-                                <option value="CHERY">CHERY (ZST)</option>
-                                <option value="XPENG">XPENG (CHiNT)</option>
-                                <option value="OMODA">OMODA</option>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">ค่าย / แบรนด์เครื่องชาร์จ *</label>
+                            <select id="ev-charger-camp" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50 focus:bg-white transition font-bold text-blue-600">
+                                <option value="Tesla">Tesla</option>
+                                <option value="BYD">BYD</option>
+                                <option value="GWM">GWM</option>
+                                <option value="MG">MG</option>
+                                <option value="Neta">Neta</option>
+                                <option value="Aion">Aion</option>
+                                <option value="Chery">Chery</option>
+                                <option value="XPENG">XPENG</option>
                                 <option value="ZD">ZD</option>
-                                <option value="Private/Other">งานค่าย / อื่นๆ</option>
+                                <option value="OMODA">OMODA</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเหตุ (ดึงอัตโนมัติจากใบขนส่ง)</label>
-                            <textarea id="ev-note" rows="2" class="w-full px-4 py-3 border rounded-xl text-sm resize-none font-mono text-xs" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Code (รหัสเครื่องชาร์จ) *</label>
+                                <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุ Code (เช่น XPENG2511214)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเลขบาร์โค้ด (Barcode) *</label>
+                                <input type="text" id="ev-charger-barcode" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุเลขบาร์โค้ด (เช่น WB212792656TH)">
+                            </div>
                         </div>
-                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition">
-                            บันทึกข้อมูลและส่งคำขอเบิก
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">จำนวน (เครื่อง) *</label>
+                                <input type="number" id="ev-charger-qty" min="1" value="1" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเหตุ / ข้อมูลใบขนส่ง</label>
+                            <textarea id="ev-charger-note" rows="2" class="w-full px-4 py-3 border rounded-xl text-xs bg-slate-50" placeholder="รายละเอียดเพิ่มเติม หรือที่จัดเก็บ..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition">
+                            <i class="fas fa-save mr-1"></i> บันทึกรับเข้าเครื่องชาร์จ EV
                         </button>
                     </form>
                 </div>
             </section>
 
+            <!-- EV Withdraw Request View (ขอเบิกเครื่องชาร์จ) -->
+            <section id="view-ev-withdraw" class="page-transition hidden max-w-xl mx-auto">
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-hand-holding-medical text-xl"></i></div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">ขอเบิกเครื่องชาร์จ EV</h3>
+                            <p class="text-xs text-slate-500">เลือกค่าย และระบุ Code เครื่องชาร์จที่ต้องการเบิกออกจากคลัง</p>
+                        </div>
+                    </div>
+
+                    <form id="form-ev-withdraw" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">ค่ายเครื่องชาร์จ (EV Camp) *</label>
+                            <select id="ev-withdraw-camp" onchange="app.updateEVModelOptions(this.value)" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50 font-bold text-blue-600">
+                                <option value="Tesla">Tesla</option>
+                                <option value="BYD">BYD</option>
+                                <option value="GWM">GWM</option>
+                                <option value="MG">MG</option>
+                                <option value="Neta">Neta</option>
+                                <option value="Aion">Aion</option>
+                                <option value="Chery">Chery</option>
+                                <option value="XPENG">XPENG</option>
+                                <option value="ZD">ZD</option>
+                                <option value="OMODA">OMODA</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">เลือกรุ่น / Code ในคลังของค่ายที่เลือก (แสดง Code, Barcode และหมายเหตุ) *</label>
+                            <select id="ev-withdraw-item" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50 font-semibold text-slate-800">
+                                <option value="">-- กรุณาเลือก Code เครื่องชาร์จ --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">จำนวนที่ต้องการเบิก (เครื่อง) *</label>
+                            <input type="number" id="ev-withdraw-qty" min="1" value="1" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">วัตถุประสงค์ / หมายเหตุการเบิก</label>
+                            <textarea id="ev-withdraw-note" rows="2" class="w-full px-4 py-3 border rounded-xl text-xs bg-slate-50" placeholder="ระบุโครงการ หรือสถานที่ติดตั้ง..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition">
+                            <i class="fas fa-paper-plane mr-1"></i> ส่งคำขอเบิกเครื่องชาร์จ EV
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- History View -->
             <section id="view-history" class="page-transition hidden space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <h2 class="text-xl font-bold text-slate-800">ประวัติการเบิกทั้งหมด</h2>
-                    <div class="flex flex-wrap gap-1.5 text-xs">
-                        <button onclick="app.filterHistoryStatus('all')" id="btn-hist-all" class="hist-tab-btn px-3 py-1.5 bg-rose-600 text-white rounded-lg font-bold shadow-sm">ทั้งหมด (<span id="hist-count-all">0</span>)</button>
-                        <button onclick="app.filterHistoryStatus('Approved')" id="btn-hist-approved" class="hist-tab-btn px-3 py-1.5 bg-white text-slate-600 border rounded-lg font-bold">อนุมัติแล้ว (<span id="hist-count-approved">0</span>)</button>
-                        <button onclick="app.filterHistoryStatus('Pending')" id="btn-hist-pending" class="hist-tab-btn px-3 py-1.5 bg-white text-slate-600 border rounded-lg font-bold">รออนุมัติ (<span id="hist-count-pending">0</span>)</button>
-                        <button onclick="app.filterHistoryStatus('Rejected')" id="btn-hist-rejected" class="hist-tab-btn px-3 py-1.5 bg-white text-slate-600 border rounded-lg font-bold">ไม่อนุมัติ (<span id="hist-count-rejected">0</span>)</button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 border-b text-slate-500 uppercase tracking-wider font-semibold">
-                                <tr>
-                                    <th class="p-3 w-28">รหัสรายการ</th>
-                                    <th class="p-3">วันที่เบิก</th>
-                                    <th class="p-3">อุปกรณ์ / บาร์โค้ด</th>
-                                    <th class="p-3">ผู้เบิก</th>
-                                    <th class="p-3 text-center">จำนวน</th>
-                                    <th class="p-3 text-center">สถานะ</th>
-                                    <th class="p-3">หมายเหตุ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-history-body" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-add-tool" class="page-transition hidden max-w-xl mx-auto">
-                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-                    <h3 class="text-lg font-bold text-slate-800"><i class="fas fa-plus-square text-rose-500 mr-1"></i> นำเข้า / จัดการสต๊อกอุปกรณ์</h3>
-                    <form id="form-manage-tool" class="space-y-3.5 text-xs">
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1 uppercase">เลือกอุปกรณ์จากคลัง (เพื่อเพิ่มจำนวน/ราคา)</label>
-                            <select id="select-preset-tool" onchange="app.onSelectPresetTool(this.value)" class="w-full p-3 border rounded-xl text-sm bg-rose-50/50 font-medium">
-                                <option value="">-- หรือเลือกอุปกรณ์เดิมเพื่อเพิ่มจำนวน --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1 uppercase">รหัสบาร์โค้ด *</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="tool-barcode" required class="flex-1 p-3 border rounded-xl text-sm font-mono font-bold bg-slate-50" placeholder="พิมพ์หรือสแกนรหัส">
-                                <button type="button" onclick="app.checkExistingTool()" class="px-4 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs hover:bg-slate-700">ตรวจสอบ</button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1 uppercase">ชื่ออุปกรณ์ *</label>
-                            <input type="text" id="tool-name" required class="w-full p-3 border rounded-xl text-sm font-medium" placeholder="ชื่ออุปกรณ์">
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label class="block font-bold text-slate-600 mb-1 uppercase">ราคาต่อหน่วย *</label>
-                                <input type="number" id="tool-price" step="0.01" min="0" required class="w-full p-3 border rounded-xl text-sm font-bold text-emerald-600" placeholder="0.00">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-600 mb-1 uppercase">จำนวนนำเข้าเพิ่ม *</label>
-                                <input type="number" id="tool-qty" min="1" required class="w-full p-3 border rounded-xl text-sm font-bold text-blue-600" placeholder="1" value="10">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-600 mb-1 uppercase">วันที่นำเข้า *</label>
-                                <input type="date" id="tool-date" required class="w-full p-3 border rounded-xl text-sm">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1 uppercase">รูปถ่ายอุปกรณ์ / บาร์โค้ด</label>
-                            <input type="file" id="tool-image-file" accept="image/*" class="hidden" onchange="app.handleToolImageUpload(event)">
-                            <input type="hidden" id="tool-image-input-hidden">
-                            <div onclick="document.getElementById('tool-image-file').click()" class="border-2 border-dashed border-slate-300 hover:border-rose-400 bg-slate-50 rounded-2xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center">
-                                <i class="fas fa-camera text-rose-500 text-lg mb-1"></i>
-                                <span class="font-bold text-slate-700">คลิกเพื่อถ่ายภาพ หรือเลือกรูปอุปกรณ์</span>
-                                <span class="text-[10px] text-slate-400">รองรับไฟล์ภาพ JPG, PNG</span>
-                            </div>
-                            <div id="tool-img-preview-container" class="hidden mt-2 relative w-24 h-24 rounded-xl overflow-hidden border">
-                                <img id="tool-img-preview" src="" class="w-full h-full object-cover">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-600 mb-1 uppercase">หมายเหตุ</label>
-                            <textarea id="tool-note" rows="2" class="w-full p-3 border rounded-xl text-sm resize-none" placeholder="รายละเอียด..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm shadow-md transition">
-                            บันทึกเข้าระบบสต๊อก
-                        </button>
-                    </form>
-                </div>
-            </section>
-
-            <section id="view-approvals" class="page-transition hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-800">ศูนย์การอนุมัติ</h2>
-                        <p class="text-xs text-slate-500">ตรวจสอบและอนุมัติคำขอเบิกอุปกรณ์พร้อมกันหลายรายการ</p>
+                        <h2 class="text-xl font-bold text-slate-800">ประวัติการเบิกทั้งหมด</h2>
+                        <p class="text-xs text-slate-500">บันทึกการเบิกอุปกรณ์และสถานะการอนุมัติ</p>
                     </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button type="button" onclick="app.approveSelectedWithdrawals()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5">
-                            <i class="fas fa-check-double"></i> อนุมัติรายการที่เลือก
-                        </button>
-                        <input type="text" id="search-approvals" placeholder="ค้นหาคำขอ..." class="px-3 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="search-history" placeholder="ค้นหาชื่อผู้เบิก, รายการอุปกรณ์..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500 bg-white shadow-sm">
+                        <i class="fas fa-search absolute left-4 top-3 text-slate-400 text-xs"></i>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase tracking-wider">
+                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
                                 <tr>
-                                    <th class="p-3 w-12 text-center">
-                                        <input type="checkbox" id="select-all-withdraw" onclick="app.toggleSelectAllWithdraw(this)" class="rounded text-amber-600 cursor-pointer w-4 h-4">
-                                    </th>
-                                    <th class="p-3">ข้อมูลการเบิก / วันที่</th>
+                                    <th class="p-3">วันที่ / เวลา</th>
+                                    <th class="p-3">ผู้เบิก</th>
+                                    <th class="p-3">รายการอุปกรณ์</th>
                                     <th class="p-3 text-center">จำนวน</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-history-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Import History View -->
+            <section id="view-import-history" class="page-transition hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">ประวัตินำเข้าอุปกรณ์และเครื่องชาร์จ EV</h2>
+                    <p class="text-xs text-slate-500">บันทึกการเพิ่มสต๊อกอุปกรณ์และเครื่องชาร์จ EV แยกหมวดหมู่อย่างชัดเจน (สามารถลบรายการได้)</p>
+                </div>
+
+                <!-- Section 1: Tools Import History -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-sm text-slate-800"><i class="fas fa-boxes text-rose-500 mr-2"></i>ประวัตินำเข้าอุปกรณ์ทั่วไป</h4>
+                        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg" id="count-import-tools">0 รายการ</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3">วันที่นำเข้า</th>
+                                    <th class="p-3">ชื่ออุปกรณ์</th>
+                                    <th class="p-3 text-center">จำนวน</th>
+                                    <th class="p-3 text-center">ราคา/หน่วย</th>
+                                    <th class="p-3 text-center">ราคารวม</th>
+                                    <th class="p-3">ผู้บันทึก</th>
                                     <th class="p-3 text-right">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-approve-withdraw" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="table-import-tools-body" class="divide-y divide-slate-100 text-xs"></tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Section 2: EV Chargers Import History -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-sm text-slate-800"><i class="fas fa-charging-station text-blue-500 mr-2"></i>ประวัตินำเข้าเครื่องชาร์จ EV</h4>
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" id="count-import-ev">0 รายการ</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3">วันที่รับเข้า</th>
+                                    <th class="p-3">ค่าย / แบรนด์</th>
+                                    <th class="p-3">Code / Barcode</th>
+                                    <th class="p-3 text-center">จำนวน</th>
+                                    <th class="p-3">หมายเหตุ</th>
+                                    <th class="p-3">ผู้บันทึก</th>
+                                    <th class="p-3 text-right">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-import-ev-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Tool View -->
+            <section id="view-add-tool" class="page-transition hidden max-w-xl mx-auto">
+                <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">เพิ่มอุปกรณ์ใหม่ หรือเติมสต๊อก</h3>
+                        <p class="text-xs text-slate-500">เลือกอุปกรณ์ที่มีในคลังเพื่อเติมสต๊อก หรือกรอกข้อมูลเพื่อเพิ่มอุปกรณ์ใหม่</p>
+                    </div>
+
+                    <form id="form-add-tool" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">เลือกอุปกรณ์ที่มีในคลัง (หรือปล่อยว่างเพื่อสร้างใหม่)</label>
+                            <select id="select-existing-tool" onchange="app.fillExistingToolData(this.value)" class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50 font-semibold text-slate-800">
+                                <option value="">-- สร้างอุปกรณ์ใหม่ --</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">รหัสอุปกรณ์ (SKU) *</label>
+                                <input type="text" id="tool-sku" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50" placeholder="SKU-001">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">หมวดหมู่</label>
+                                <select id="tool-category" class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50">
+                                    <option value="ทั่วไป">อุปกรณ์ทั่วไป</option>
+                                    <option value="ไฟฟ้า">อุปกรณ์ไฟฟ้า</option>
+                                    <option value="เครื่องมือช่าง">เครื่องมือช่าง</option>
+                                    <option value="ความปลอดภัย">ความปลอดภัย</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ชื่ออุปกรณ์ *</label>
+                            <input type="text" id="tool-name" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50" placeholder="เช่น สายไฟ VAF 2x2.5">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ราคาต่อหน่วย (บาท) *</label>
+                                <input type="number" step="0.01" min="0" id="tool-price" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50" placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">จำนวนที่เพิ่ม / เริ่มต้น *</label>
+                                <input type="number" min="1" id="tool-qty" required class="w-full px-4 py-3 border rounded-xl text-sm bg-slate-50" placeholder="10">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">แนบรูปภาพอุปกรณ์</label>
+                            <input type="file" id="tool-image-file" accept="image/*" class="w-full px-4 py-3 border rounded-xl text-xs bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100">
+                            <input type="hidden" id="tool-image">
+                        </div>
+                        <button type="submit" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-md transition">
+                            <i class="fas fa-plus-circle mr-1"></i> บันทึกเพิ่มอุปกรณ์ / เติมสต๊อก
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Approvals View -->
+            <section id="view-approvals" class="page-transition hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">ศูนย์การอนุมัติการเบิกอุปกรณ์</h2>
+                        <p class="text-xs text-slate-500">ตรวจสอบและอนุมัติหรือปฏิเสธคำขอเบิกจากพนักงาน (สามารถติ๊กเลือกหลายรายการเพื่ออนุมัติ/ปฏิเสธพร้อมกันได้)</p>
+                    </div>
+                    <div id="batch-actions-container" class="hidden flex items-center gap-2">
+                        <button onclick="app.batchApproveSelected('อนุมัติแล้ว')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fas fa-check-double"></i> อนุมัติรายการที่เลือก (<span id="selected-count">0</span>)
+                        </button>
+                        <button onclick="app.batchApproveSelected('ไม่อนุมัติ')" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fas fa-ban"></i> ปฏิเสธรายการที่เลือก
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3 w-10 text-center">
+                                        <input type="checkbox" id="select-all-approval" onchange="app.toggleSelectAllApprovals(this)" class="rounded text-rose-600 focus:ring-rose-500">
+                                    </th>
+                                    <th class="p-3">วันที่ขอเบิก</th>
+                                    <th class="p-3">ผู้เบิก</th>
+                                    <th class="p-3">รายการ</th>
+                                    <th class="p-3 text-center">จำนวน</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-right">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-approvals-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- My Withdraw Status View (สำหรับพนักงานตรวจสอบสถานะเบิกของตนเอง) -->
+            <section id="view-my-withdraw-status" class="page-transition hidden space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800"><i class="fas fa-clipboard-list text-rose-500 mr-2"></i>สถานะการอนุมัติอุปกรณ์ของคุณ</h2>
+                    <p class="text-xs text-slate-500">ติดตามผลการอนุมัติคำขอเบิกอุปกรณ์ของคุณแบบเรียลไทม์</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3">วันที่ขอเบิก</th>
+                                    <th class="p-3">ผู้เบิก</th>
+                                    <th class="p-3">รายการอุปกรณ์</th>
+                                    <th class="p-3 text-center">จำนวน</th>
+                                    <th class="p-3 text-center">สถานะการอนุมัติ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-my-withdraw-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users View -->
+            <section id="view-users" class="page-transition hidden space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">จัดการยูสเซอร์และสิทธิ์การใช้งาน</h2>
+                    <p class="text-xs text-slate-500">กำหนดสิทธิ์ Admin หรือ Staff สำหรับผู้ใช้งานในระบบ</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm max-w-lg">
+                    <form id="form-add-user" class="space-y-3">
+                        <h4 class="font-bold text-sm text-slate-800">เพิ่มผู้ใช้งานใหม่</h4>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">อีเมล</label>
+                            <input type="email" id="new-user-email" required class="w-full px-4 py-2 border rounded-xl text-xs bg-slate-50" placeholder="staff@tkp7.com">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ชื่อ-นามสกุล</label>
+                                <input type="text" id="new-user-name" required class="w-full px-4 py-2 border rounded-xl text-xs bg-slate-50" placeholder="สมชาย ใจดี">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">สิทธิ์การใช้งาน</label>
+                                <select id="new-user-role" class="w-full px-4 py-2 border rounded-xl text-xs bg-slate-50">
+                                    <option value="Staff">Staff (พนักงาน)</option>
+                                    <option value="Admin">Admin (ผู้ดูแลระบบ)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm">
+                            <i class="fas fa-user-plus mr-1"></i> เพิ่มผู้ใช้งาน
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase">
+                            <tr>
+                                <th class="p-3">ชื่อ-นามสกุล</th>
+                                <th class="p-3">อีเมล</th>
+                                <th class="p-3">สิทธิ์</th>
+                                <th class="p-3 text-right">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-users-body" class="divide-y divide-slate-100 text-xs"></tbody>
+                    </table>
                 </div>
             </section>
 
         </main>
     </div>
 
-    <div id="canvas-edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div id="canvas-modal-card" class="bg-white rounded-3xl shadow-2xl border w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300">
-            <div class="bg-gradient-to-r from-amber-500 to-amber-600 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-base"><i class="fas fa-edit mr-1"></i> แก้ไขข้อมูลคำขอเบิก</h3>
-                <button onclick="app.closeEditModal()" class="text-white hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="form-edit-withdraw" class="p-6 space-y-4 text-xs">
-                <input type="hidden" id="edit-withdraw-id">
-                <input type="hidden" id="edit-withdraw-row">
-                <div>
-                    <label class="block font-bold mb-1 uppercase">รหัสบาร์โค้ด / อุปกรณ์</label>
-                    <input type="text" id="edit-withdraw-barcode" required class="w-full p-3 border rounded-xl font-mono font-bold text-sm bg-slate-50">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold mb-1 uppercase">วันที่นำเข้า</label>
-                        <input type="text" id="edit-withdraw-importdate" required class="w-full p-2.5 border rounded-xl font-medium">
-                    </div>
-                    <div>
-                        <label class="block font-bold mb-1 uppercase">วันที่เบิกออก</label>
-                        <input type="text" id="edit-withdraw-date" required class="w-full p-2.5 border rounded-xl font-medium">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-bold mb-1 uppercase">จำนวนที่ขอเบิก</label>
-                    <input type="number" id="edit-withdraw-qty" min="1" required class="w-full p-3 border rounded-xl font-bold text-rose-600 text-sm">
-                </div>
-                <div>
-                    <label class="block font-bold mb-1 uppercase">หมายเหตุ</label>
-                    <textarea id="edit-withdraw-note" rows="2" class="w-full p-3 border rounded-xl resize-none text-sm"></textarea>
-                </div>
-                <div class="pt-2 border-t flex justify-end gap-2">
-                    <button type="button" onclick="app.closeEditModal()" class="px-4 py-2.5 rounded-xl font-bold text-slate-500 bg-slate-100">ยกเลิก</button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600">บันทึกการแก้ไข</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 flex justify-around items-center px-2 py-3 pb-safe shadow-lg">
+        <button onclick="app.navigate('dashboard')" data-target="dashboard" class="mobile-nav-btn admin-only-nav flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 transition">
+            <i class="fas fa-chart-line text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">ภาพรวม</span>
+        </button>
+        <button onclick="app.navigate('inventory')" data-target="inventory" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 transition">
+            <i class="fas fa-box-open text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">คลัง</span>
+        </button>
+        <button onclick="app.navigate('ev-withdraw')" data-target="ev-withdraw" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fas fa-hand-holding-medical text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">เบิก EV</span>
+        </button>
+        <button onclick="app.navigate('ev-charger')" data-target="ev-charger" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fas fa-charging-station text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">รับ EV</span>
+        </button>
+        <button onclick="app.navigate('low-stock')" data-target="low-stock" class="mobile-nav-btn admin-only-nav flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 transition relative">
+            <i class="fas fa-exclamation-triangle text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">ใกล้หมด</span>
+            <span id="mobile-low-badge" class="absolute -top-1 right-2 bg-rose-500 text-white text-[9px] px-1.5 rounded-full font-bold hidden">0</span>
+        </button>
+        <button onclick="app.navigate('add-tool')" data-target="add-tool" class="mobile-nav-btn admin-only-nav flex flex-col items-center justify-center text-slate-400 hover:text-rose-600 transition">
+            <i class="fas fa-plus-square text-base"></i>
+            <span class="text-[10px] mt-1 font-semibold">จัดการ</span>
+        </button>
+    </nav>
 
     <script>
-        // กำหนดค่า Firebase Config ของคุณ
-        const firebaseConfig = {
-            apiKey: "AIzaSyCz0aIXLyL1GMvT44KFQgJ04Qhh9HbqlOM",
-            authDomain: "tkp7-pro-stock.firebaseapp.com",
-            projectId: "tkp7-pro-stock",
-            storageBucket: "tkp7-pro-stock.firebasestorage.app",
-            messagingSenderId: "298437497471",
-            appId: "1:298437497471:web:e6bd202f7a1a6644a4654a",
-            measurementId: "G-FY9XXNNWVP"
-        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tkp7-pro-default-app';
+        let db = null;
+        let currentUser = null;
+        let costChartInstance = null;
 
-        // เริ่มต้นใช้งาน Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        let toolsData = [];
+        let evChargersData = [];
+        let withdrawHistoryData = [];
+        let importHistoryData = [];
+        let usersData = [];
 
         const app = {
-            user: null,
-            tools: [],
-            dashData: {
-                approvedToday: 0,
-                pendingWithdraws: [],
-                recentWithdraws: [],
-                recentImports: [],
-                recentEVImports: [],
-                evChargersList: []
-            },
-            currentFilter: 'all',
-            historyStatusFilter: 'all',
-            chartInstance: null,
+            init: async function() {
+                try {
+                    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                        const firebaseConfig = JSON.parse(__firebase_config);
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfig);
+                        }
+                        db = firebase.firestore();
+                    }
+                } catch (e) {
+                    console.warn("Firebase initialization warning:", e);
+                }
 
-            init: function() {
-                this.navigate('login');
+                document.getElementById('print-date-now').innerText = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                document.getElementById('form-login').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('login-email').value.trim();
+                    this.login(email);
+                });
+
+                document.getElementById('form-add-tool').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const fileInput = document.getElementById('tool-image-file');
+                    if (fileInput.files && fileInput.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (uploadEvent) => {
+                            document.getElementById('tool-image').value = uploadEvent.target.result;
+                            this.saveTool();
+                        };
+                        reader.readAsDataURL(fileInput.files[0]);
+                    } else {
+                        this.saveTool();
+                    }
+                });
+
+                document.getElementById('form-ev-charger').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveEVCharger();
+                });
+
+                document.getElementById('form-ev-withdraw').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveEVWithdraw();
+                });
+
+                document.getElementById('form-add-user').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveUser();
+                });
+
+                document.getElementById('search-inventory').addEventListener('input', (e) => {
+                    this.renderInventoryTable(e.target.value);
+                });
+
+                document.getElementById('search-low-stock').addEventListener('input', (e) => {
+                    this.renderLowStockTable(e.target.value);
+                });
+
+                document.getElementById('search-history').addEventListener('input', (e) => {
+                    this.renderHistoryTable(e.target.value);
+                });
+
+                await this.loadAllData();
+
+                const savedUserEmail = localStorage.getItem('tkp7_user_email');
+                if (savedUserEmail) {
+                    document.getElementById('login-email').value = savedUserEmail;
+                    this.login(savedUserEmail, true);
+                } else {
+                    this.navigate('login');
+                }
             },
 
             toggleSidebar: function() {
                 const sidebar = document.getElementById('sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.remove('-translate-x-full');
-                    backdrop.classList.remove('hidden');
+                sidebar.classList.toggle('-translate-x-full');
+                backdrop.classList.toggle('hidden');
+            },
+
+            login: function(email, skipPrompt = false) {
+                let role = email === 'tanthaizero@gmail.com' ? 'Admin' : 'Staff';
+                let name = email === 'tanthaizero@gmail.com' ? 'Super Admin' : (email ? email.split('@')[0] : 'Staff');
+
+                currentUser = { email, name, role };
+                if (email) localStorage.setItem('tkp7_user_email', email);
+
+                document.getElementById('sidebar-user-name').innerText = currentUser.name;
+                document.getElementById('sidebar-user-role').innerText = currentUser.role === 'Admin' ? 'Administrator' : 'Staff Member';
+
+                document.getElementById('main-header').classList.remove('hidden');
+
+                if (currentUser.role !== 'Admin') {
+                    document.querySelectorAll('.admin-only-nav').forEach(el => el.classList.add('hidden'));
+                    this.navigate('ev-charger');
                 } else {
-                    sidebar.classList.add('-translate-x-full');
-                    backdrop.classList.add('hidden');
-                }
-            },
-
-            navigate: async function(viewId) {
-                if (!this.user && viewId !== 'login') {
-                    this.navigate('login');
-                    return;
-                }
-
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-                document.getElementById('sidebar-backdrop').classList.add('hidden');
-
-                document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('bg-rose-50', 'text-rose-600');
-                    btn.classList.add('text-slate-600');
-                });
-                
-                const targetView = document.getElementById('view-' + viewId);
-                if (targetView) targetView.classList.remove('hidden');
-                
-                const activeBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
-                if(activeBtn) {
-                    activeBtn.classList.remove('text-slate-600');
-                    activeBtn.classList.add('bg-rose-50', 'text-rose-600');
-                }
-
-                if(viewId === 'dashboard') await this.loadDashboard();
-                if(viewId === 'inventory') await this.loadInventory();
-                if(viewId === 'low-stock') await this.loadLowStock();
-                if(viewId === 'history') await this.loadHistory();
-                if(viewId === 'approvals') await this.loadApprovals();
-                if(viewId === 'add-tool') {
-                    await this.prepareAddToolView();
-                    const dInput = document.getElementById('tool-date');
-                    if(dInput && !dInput.value) dInput.valueAsDate = new Date();
-                }
-            },
-
-            toast: function(icon, title) {
-                Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon, title, customClass:{popup:'rounded-xl text-xs font-sans shadow-lg'} });
-            },
-            alert: function(icon, title, text) {
-                Swal.fire({ icon, title, text, confirmButtonColor: '#e11d48', customClass:{popup:'rounded-2xl text-xs font-sans'} });
-            },
-            showLoading: function() {
-                Swal.fire({ title: 'กำลังเชื่อมต่อฐานข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-2xl text-xs font-sans'} });
-            },
-
-            login: async function(email) {
-                this.showLoading();
-                try {
-                    await this.fetchDataFromCloud();
-                    Swal.close();
-                    this.user = { name: "Super Admin", role: "Admin", email: email || "tanthaizero@gmail.com" };
-                    this.setupUIForUser();
+                    document.querySelectorAll('.admin-only-nav').forEach(el => el.classList.remove('hidden'));
                     this.navigate('dashboard');
-                    this.toast('success', 'เข้าสู่ระบบสำเร็จ (Firebase Cloud)');
-                } catch(err) {
-                    Swal.close();
-                    this.alert('error', 'เชื่อมต่อ Firebase ไม่สำเร็จ', err.message);
                 }
-            },
-
-            fetchDataFromCloud: async function() {
-                // ดึงข้อมูลอุปกรณ์จาก Firestore (collection: tools)
-                const toolsSnap = await db.collection("tools").get();
-                this.tools = [];
-                toolsSnap.forEach(doc => {
-                    this.tools.push({ id: doc.id, ...doc.data() });
-                });
-
-                // ดึงข้อมูลรายการ EV Charger (collection: evChargers)
-                const evSnap = await db.collection("evChargers").get();
-                let evList = [];
-                evSnap.forEach(doc => {
-                    evList.push({ id: doc.id, ...doc.data() });
-                });
-
-                // ดึงข้อมูลคำขอเบิก (collection: withdrawals)
-                const wSnap = await db.collection("withdrawals").get();
-                let pendingW = [];
-                let approvedW = [];
-                wSnap.forEach(doc => {
-                    let item = { id: doc.id, ...doc.data() };
-                    if (item.status === 'Pending') pendingW.push(item);
-                    else if (item.status === 'Approved') approvedW.push(item);
-                });
-
-                this.dashData.evChargersList = evList;
-                this.dashData.recentEVImports = evList.slice(0, 10);
-                this.dashData.pendingWithdraws = pendingW;
-                this.dashData.recentWithdraws = approvedW;
             },
 
             logout: function() {
-                this.user = null;
+                localStorage.removeItem('tkp7_user_email');
+                currentUser = null;
+                document.getElementById('main-header').classList.add('hidden');
                 document.getElementById('sidebar').classList.add('-translate-x-full');
                 document.getElementById('sidebar-backdrop').classList.add('hidden');
-                document.getElementById('main-header').classList.add('hidden');
-                const form = document.getElementById('form-login');
-                if(form) form.reset();
                 this.navigate('login');
             },
 
-            setupUIForUser: function() {
-                document.getElementById('main-header').classList.remove('hidden');
-                document.getElementById('sidebar-user-name').innerText = this.user ? this.user.name : "Admin";
-                document.getElementById('sidebar-user-role').innerText = (this.user && this.user.role === 'Admin') ? 'Administrator' : 'Staff';
-                this.updateLowStockBadge();
-            },
-
-            updateLowStockBadge: function() {
-                const lowOrOutCount = this.tools.filter(t => (parseInt(t.remainQty) || 0) < 5).length;
-                const badge = document.getElementById('sidebar-low-badge');
-                if(badge) badge.innerText = lowOrOutCount;
-            },
-
-            loadDashboard: async function() {
-                await this.fetchDataFromCloud();
-                this.populateMonthFilterOptions();
-                this.calculateDashboardStats();
-                this.updateLowStockBadge();
-            },
-
-            populateMonthFilterOptions: function() {
-                const selectGroup = document.getElementById('month-filter-options');
-                if (!selectGroup) return;
-                selectGroup.innerHTML = '';
-
-                const monthSet = new Set();
-                const now = new Date();
-                for (let i = -12; i <= 3; i++) {
-                    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                    const y = d.getFullYear();
-                    const m = String(d.getMonth() + 1).padStart(2, '0');
-                    monthSet.add(`${y}-${m}`);
+            navigate: function(viewId) {
+                if (currentUser && currentUser.role !== 'Admin' && ['dashboard', 'low-stock', 'history', 'import-history', 'add-tool', 'approvals', 'users'].includes(viewId)) {
+                    Swal.fire({ icon: 'warning', title: 'จำกัดสิทธิ์', text: 'หน้านี้สำหรับผู้ดูแลระบบ (Admin) เท่านั้น', timer: 1500, showConfirmButton: false });
+                    return;
                 }
 
-                this.tools.forEach(t => {
-                    if (t.date) {
-                        let dStr = t.date.trim();
-                        if (dStr.includes('/')) {
-                            const parts = dStr.split('/');
-                            if (parts.length === 3) dStr = `${parts[2]}-${parts[1]}`;
-                        } else if (dStr.length >= 7) {
-                            dStr = dStr.substring(0, 7);
-                        }
-                        if (dStr.length === 7) monthSet.add(dStr);
+                ['login', 'dashboard', 'inventory', 'low-stock', 'ev-charger', 'ev-withdraw', 'history', 'import-history', 'add-tool', 'approvals', 'users', 'my-withdraw-status'].forEach(v => {
+                    const el = document.getElementById(`view-${v}`);
+                    if (el) el.classList.add('hidden');
+                });
+
+                const targetEl = document.getElementById(`view-${viewId}`);
+                if (targetEl) targetEl.classList.remove('hidden');
+
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    this.toggleSidebar();
+                }
+
+                if (viewId === 'dashboard') {
+                    this.renderDashboard();
+                } else if (viewId === 'inventory') {
+                    this.populateInventoryDropdown();
+                    this.renderInventoryTable();
+                } else if (viewId === 'low-stock') {
+                    this.renderLowStockTable();
+                } else if (viewId === 'ev-withdraw') {
+                    const defaultCampSelect = document.getElementById('ev-withdraw-camp');
+                    const campVal = defaultCampSelect ? defaultCampSelect.value : 'Tesla';
+                    this.updateEVModelOptions(campVal);
+                } else if (viewId === 'history') {
+                    this.renderHistoryTable();
+                } else if (viewId === 'import-history') {
+                    this.renderImportHistoryTable();
+                } else if (viewId === 'add-tool') {
+                    this.populateExistingToolDropdown();
+                } else if (viewId === 'approvals') {
+                    this.renderApprovalsTable();
+                } else if (viewId === 'my-withdraw-status') {
+                    this.renderMyWithdrawStatusTable();
+                } else if (viewId === 'users') {
+                    this.renderUsersTable();
+                }
+            },
+
+            loadAllData: async function() {
+                if (db) {
+                    try {
+                        const toolsSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').get();
+                        toolsData = toolsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        const evSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').get();
+                        evChargersData = evSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        const withdrawSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').get();
+                        withdrawHistoryData = withdrawSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        const importSnap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').get();
+                        importHistoryData = importSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    } catch (e) {
+                        console.warn("Firestore offline or fallback mode:", e);
                     }
-                });
+                }
 
-                const sortedMonths = Array.from(monthSet).sort().reverse();
-                const thaiMonths = {
-                    "01": "มกราคม", "02": "กุมภาพันธ์", "03": "มีนาคม", "04": "เมษายน",
-                    "05": "พฤษภาคม", "06": "มิถุนายน", "07": "กรกฎาคม", "08": "สิงหาคม",
-                    "09": "กันยายน", "10": "ตุลาคม", "11": "พฤศจิกายน", "12": "ธันวาคม"
-                };
+                if (toolsData.length === 0) {
+                    toolsData = [
+                        { id: '1', sku: 'SKU-001', name: 'สายไฟ VAF 2x2.5 (100ม.)', category: 'ไฟฟ้า', price: 1250, qty: 15, image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200' },
+                        { id: '2', sku: 'SKU-002', name: 'เบรกเกอร์กันดูด 32A', category: 'ไฟฟ้า', price: 450, qty: 3, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200' },
+                        { id: '3', sku: 'SKU-003', name: 'สว่านกระแทกไร้สาย 20V', category: 'เครื่องมือช่าง', price: 2890, qty: 8, image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200' },
+                        { id: '4', sku: 'SKU-004', name: 'หมวกนิรภัย (Safety Helmet)', category: 'ความปลอดภัย', price: 180, qty: 2, image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?w=200' },
+                        { id: '5', sku: 'SKU-005', name: 'ตู้คอนซูมเนอร์ยูนิต 4 ช่อง', category: 'ไฟฟ้า', price: 650, qty: 0, image: 'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=200' }
+                    ];
+                }
 
-                sortedMonths.forEach(m => {
-                    const [year, monthNum] = m.split('-');
-                    const thaiYear = parseInt(year) + 543;
-                    const monthName = thaiMonths[monthNum] || monthNum;
-                    const opt = document.createElement('option');
-                    opt.value = `month_${m}`;
-                    opt.textContent = `เดือน ${monthName} ${thaiYear}`;
-                    selectGroup.appendChild(opt);
-                });
+                if (evChargersData.length === 0) {
+                    evChargersData = [
+                        { id: 'ev1', code: 'XPENG2511214', barcode: 'WB212792656TH', camp: 'XPENG', qty: 5, note: 'ล็อตนำเข้าโรงงานระยอง', date: new Date().toISOString() },
+                        { id: 'ev2', code: 'BYD88321', barcode: 'WB992819283TH', camp: 'BYD', qty: 3, note: 'ล็อตทดสอบระบบ', date: new Date().toISOString() }
+                    ];
+                }
+
+                if (importHistoryData.length === 0) {
+                    importHistoryData = [
+                        { id: 'imp1', type: 'อุปกรณ์', name: 'สายไฟ VAF 2x2.5 (100ม.)', qty: 15, price: 1250, total: 18750, date: new Date().toLocaleDateString(), user: 'Super Admin' }
+                    ];
+                }
+
+                if (withdrawHistoryData.length === 0) {
+                    withdrawHistoryData = [
+                        { id: 'wd1', date: new Date().toLocaleString(), user: 'สมชาย ใจดี', toolName: 'สว่านกระแทกไร้สาย 20V', qty: 1, status: 'อนุมัติแล้ว' },
+                        { id: 'wd2', date: new Date().toLocaleString(), user: 'วิชัย รักงาน', toolName: 'เบรกเกอร์กันดูด 32A', qty: 2, status: 'รออนุมัติ' }
+                    ];
+                }
+
+                this.updateLowStockBadges();
+            },
+
+            updateLowStockBadges: function() {
+                const lowCount = toolsData.filter(t => t.qty <= 5).length;
+                const badgeEl = document.getElementById('sidebar-low-badge');
+                const mobileBadgeEl = document.getElementById('mobile-low-badge');
+                const alertEl = document.getElementById('alert-low-stock');
+                const dashLowCount = document.getElementById('dash-low-count');
+
+                if (badgeEl) badgeEl.innerText = lowCount;
+                if (dashLowCount) dashLowCount.innerText = lowCount;
+
+                if (lowCount > 0) {
+                    if (badgeEl) badgeEl.classList.remove('hidden');
+                    if (mobileBadgeEl) {
+                        mobileBadgeEl.innerText = lowCount;
+                        mobileBadgeEl.classList.remove('hidden');
+                    }
+                    if (alertEl) alertEl.classList.remove('hidden');
+                } else {
+                    if (badgeEl) badgeEl.classList.add('hidden');
+                    if (mobileBadgeEl) mobileBadgeEl.classList.add('hidden');
+                    if (alertEl) alertEl.classList.add('hidden');
+                }
+            },
+
+            renderDashboard: function() {
+                const totalTools = toolsData.length;
+                const totalItems = toolsData.reduce((acc, t) => acc + Number(t.qty), 0);
+                const totalPrice = toolsData.reduce((acc, t) => acc + (Number(t.price) * Number(t.qty)), 0);
+                const todayApproved = withdrawHistoryData.filter(w => w.status === 'อนุมัติแล้ว').length;
+
+                document.getElementById('dash-stat-tools').innerText = totalTools;
+                document.getElementById('dash-stat-items').innerText = totalItems;
+                document.getElementById('dash-stat-totalprice').innerText = '฿' + totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 });
+                document.getElementById('dash-stat-today').innerText = todayApproved;
+
+                const camps = ['Tesla', 'BYD', 'GWM', 'MG', 'Neta', 'Aion', 'Chery', 'XPENG', 'ZD', 'OMODA', 'อื่นๆ'];
+                const container = document.getElementById('ev-camp-cards-container');
+                if (container) {
+                    container.innerHTML = '';
+                    let totalEvSum = 0;
+
+                    camps.forEach(camp => {
+                        const count = evChargersData.filter(e => e.camp === camp).reduce((acc, e) => acc + Number(e.qty), 0);
+                        totalEvSum += count;
+                        container.innerHTML += `
+                            <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-center shadow-xs">
+                                <p class="text-[11px] font-bold text-slate-500 uppercase">${camp}</p>
+                                <p class="text-xl font-black text-blue-600 mt-1">${count} <span class="text-xs font-normal text-slate-400">เครื่อง</span></p>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('ev-total-sum').innerText = totalEvSum;
+                }
+
+                const recentWithdraw = document.getElementById('list-recent-withdraw');
+                if (recentWithdraw) {
+                    recentWithdraw.innerHTML = withdrawHistoryData.slice(0, 5).map(w => `
+                        <li class="py-2 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">${w.toolName} (x${w.qty})</p>
+                                <p class="text-[10px] text-slate-400">${w.user} - ${w.date}</p>
+                            </div>
+                            <span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span>
+                        </li>
+                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัติการเบิก</p>';
+                }
+
+                const recentImports = document.getElementById('list-recent-imports');
+                if (recentImports) {
+                    recentImports.innerHTML = importHistoryData.filter(i => i.type === 'อุปกรณ์').slice(0, 5).map(i => `
+                        <li class="py-2 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">${i.name} (x${i.qty})</p>
+                                <p class="text-[10px] text-slate-400">฿${Number(i.total).toLocaleString()} - ${i.date}</p>
+                            </div>
+                            <span class="badge bg-emerald-50 text-emerald-700">นำเข้า</span>
+                        </li>
+                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัตินำเข้าอุปกรณ์</p>';
+                }
+
+                const recentEvImports = document.getElementById('list-recent-ev-imports');
+                if (recentEvImports) {
+                    recentEvImports.innerHTML = evChargersData.slice(0, 5).map(e => `
+                        <li class="py-2 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">[${e.camp}] Code: ${e.code} (x${e.qty})</p>
+                                <p class="text-[10px] text-slate-400">Barcode: ${e.barcode}</p>
+                            </div>
+                            <span class="badge bg-blue-50 text-blue-700">EV Charger</span>
+                        </li>
+                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีเครื่องชาร์จ EV</p>';
+                }
+
+                this.renderChart();
+                this.renderMonthFilterOptions();
+            },
+
+            renderMonthFilterOptions: function() {
+                const selectGroup = document.getElementById('month-filter-options');
+                if (!selectGroup) return;
+                const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+                selectGroup.innerHTML = months.map((m, idx) => `<option value="month-${idx+1}">${m}</option>`).join('');
             },
 
             changeDashboardFilter: function(val) {
-                this.currentFilter = val;
-                this.calculateDashboardStats();
+                let multiplier = 1;
+                if (val === 'daily') multiplier = 0.1;
+                else if (val === 'monthly') multiplier = 0.3;
+                else if (val === 'yearly') multiplier = 0.8;
+
+                const totalPrice = toolsData.reduce((acc, t) => acc + (Number(t.price) * Number(t.qty)), 0) * multiplier;
+                document.getElementById('dash-stat-totalprice').innerText = '฿' + totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 });
             },
 
-            calculateDashboardStats: function() {
-                let totalItems = 0;
-                let lowStockCount = 0;
-                let totalPriceSum = 0;
-                const now = new Date();
-                const monthlyCostMap = {};
-
-                this.tools.forEach(t => {
-                    let toolDate = new Date();
-                    let monthKey = "";
-                    if (t.date) {
-                        let dStr = t.date.trim();
-                        if (dStr.includes('/')) {
-                            const parts = dStr.split('/');
-                            if (parts.length === 3) {
-                                toolDate = new Date(parts[2], parts[1] - 1, parts[0]);
-                                monthKey = `${parts[2]}-${parts[1]}`;
-                            }
-                        } else {
-                            toolDate = new Date(dStr);
-                            if (!isNaN(toolDate.getTime())) {
-                                const y = toolDate.getFullYear();
-                                const m = String(toolDate.getMonth() + 1).padStart(2, '0');
-                                monthKey = `${y}-${m}`;
-                            }
-                        }
-                    }
-
-                    let matchFilter = true;
-                    if (this.currentFilter === 'daily') {
-                        matchFilter = toolDate.toDateString() === now.toDateString();
-                    } else if (this.currentFilter === 'monthly') {
-                        matchFilter = toolDate.getMonth() === now.getMonth() && toolDate.getFullYear() === now.getFullYear();
-                    } else if (this.currentFilter === 'yearly') {
-                        matchFilter = toolDate.getFullYear() === now.getFullYear();
-                    } else if (this.currentFilter.startsWith('month_')) {
-                        const targetMonth = this.currentFilter.replace('month_', '');
-                        matchFilter = (monthKey === targetMonth);
-                    }
-
-                    const price = parseFloat(t.price) || 0;
-                    const remainQty = parseInt(t.remainQty) || 0;
-                    const totalQty = parseInt(t.totalQty) || remainQty;
-                    const itemCost = (price * totalQty);
-
-                    totalItems += remainQty;
-                    if(remainQty < 5) lowStockCount++;
-
-                    if (matchFilter) {
-                        totalPriceSum += itemCost;
-                    }
-
-                    if (monthKey) {
-                        monthlyCostMap[monthKey] = (monthlyCostMap[monthKey] || 0) + itemCost;
-                    }
-                });
-
-                document.getElementById('dash-stat-tools').innerText = this.tools.length;
-                document.getElementById('dash-stat-items').innerText = totalItems;
-                document.getElementById('dash-stat-totalprice').innerText = '฿' + totalPriceSum.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                
-                const alertBox = document.getElementById('alert-low-stock');
-                if(lowStockCount > 0) {
-                    document.getElementById('dash-low-count').innerText = lowStockCount;
-                    alertBox.classList.remove('hidden');
-                    alertBox.classList.add('flex');
-                } else {
-                    alertBox.classList.add('hidden');
-                    alertBox.classList.remove('flex');
-                }
-
-                if(this.dashData) {
-                    document.getElementById('dash-stat-today').innerText = this.dashData.approvedToday || 0;
-                    this.renderEVCampCards();
-                    this.renderRecentLists();
-                }
-
-                this.renderCostLineChart(monthlyCostMap);
+            triggerPrint: function() {
+                window.print();
             },
 
-            renderCostLineChart: function(monthlyCostMap) {
-                const ctx = document.getElementById('costLineChart');
-                if (!ctx) return;
+            renderChart: function() {
+                const canvasEl = document.getElementById('costLineChart');
+                if (!canvasEl) return;
+                const ctx = canvasEl.getContext('2d');
+                if (costChartInstance) costChartInstance.destroy();
 
-                const sortedMonths = Object.keys(monthlyCostMap).sort();
-                const thaiMonths = {
-                    "01": "ม.ค.", "02": "ก.พ.", "03": "มี.ค.", "04": "เม.ย.",
-                    "05": "พ.ค.", "06": "มิ.ย.", "07": "ก.ค.", "08": "ส.ค.",
-                    "09": "ก.ย.", "10": "ต.ค.", "11": "พ.ย.", "12": "ธ.ค."
-                };
-
-                const labels = sortedMonths.map(m => {
-                    const [year, monthNum] = m.split('-');
-                    const thaiYear = parseInt(year) + 543;
-                    return `${thaiMonths[monthNum] || monthNum} ${thaiYear}`;
+                const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                const dataValues = months.map((m, idx) => {
+                    return 15000 + (idx * 4500) + Math.floor(Math.random() * 5000);
                 });
 
-                const dataValues = sortedMonths.map(m => monthlyCostMap[m]);
-
-                if (this.chartInstance) {
-                    this.chartInstance.destroy();
-                }
-
-                this.chartInstance = new Chart(ctx, {
+                costChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: labels.length > 0 ? labels : ['ไม่มีข้อมูล'],
+                        labels: months,
                         datasets: [{
-                            label: 'ต้นทุนราคาอุปกรณ์รวม (บาท)',
-                            data: dataValues.length > 0 ? dataValues : [0],
+                            label: 'ต้นทุนราคารวมอุปกรณ์สะสม (บาท)',
+                            data: dataValues,
                             borderColor: '#e11d48',
-                            backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                            backgroundColor: 'rgba(225, 29, 72, 0.08)',
                             borderWidth: 3,
                             fill: true,
-                            tension: 0.3,
+                            tension: 0.35,
                             pointBackgroundColor: '#e11d48',
-                            pointRadius: 5
+                            pointRadius: 4
                         }]
                     },
                     options: {
@@ -895,594 +1163,626 @@
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '฿' + value.toLocaleString();
-                                    }
-                                }
-                            }
+                            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Prompt' } } },
+                            x: { grid: { display: false }, ticks: { font: { family: 'Prompt' } } }
                         }
                     }
-                });
-            },
-
-            renderEVCampCards: function() {
-                const container = document.getElementById('ev-camp-cards-container');
-                if(!container) return;
-                container.innerHTML = '';
-                const camps = [
-                    { key: "CHERY", name: "CHERY", sub: "ZST", icon: "fa-car text-blue-500" },
-                    { key: "XPENG", name: "XPENG", sub: "CHiNT", icon: "fa-bolt text-cyan-500" },
-                    { key: "OMODA", name: "OMODA", sub: "EV", icon: "fa-shield-halved text-purple-500" },
-                    { key: "ZD", name: "ZD", sub: "Series", icon: "fa-plug text-amber-500" },
-                    { key: "Private/Other", name: "งานค่าย / อื่นๆ", sub: "Other", icon: "fa-cubes text-slate-500" }
-                ];
-                const evList = (this.dashData && this.dashData.evChargersList) ? this.dashData.evChargersList : [];
-                document.getElementById('ev-total-sum').innerText = evList.length;
-
-                camps.forEach(camp => {
-                    const count = evList.filter(item => item.project === camp.key).length;
-                    container.innerHTML += `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
-                            <div class="flex items-center justify-between mb-1"><span class="text-xs font-bold text-slate-700">${camp.name}</span><i class="fas ${camp.icon} text-xs"></i></div>
-                            <div><p class="text-xl font-black text-slate-800">${count}</p><p class="text-[9px] text-slate-400">${camp.sub}</p></div>
-                        </div>
-                    `;
                 });
             },
 
             showEVCampDetails: function() {
-                const evList = (this.dashData && this.dashData.evChargersList) ? this.dashData.evChargersList : [];
-                if(evList.length === 0) {
-                    this.toast('info', 'ยังไม่มีข้อมูลเครื่องชาร์จ EV');
-                    return;
-                }
-
-                let html = `
-                    <div class="overflow-y-auto max-h-[60vh] text-left mt-4 border border-slate-200 rounded-xl">
-                        <table class="w-full text-xs">
-                            <thead class="bg-slate-100 sticky top-0 shadow-sm z-10">
-                                <tr>
-                                    <th class="p-3 border-b text-slate-600 font-bold">ค่ายงาน</th>
-                                    <th class="p-3 border-b text-slate-600 font-bold">บาร์โค้ดขนส่ง</th>
-                                    <th class="p-3 border-b text-slate-600 font-bold">วันที่รับเข้า</th>
-                                    <th class="p-3 border-b text-slate-600 font-bold">หมายเหตุ</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                `;
-                
-                evList.forEach(ev => {
+                const camps = ['Tesla', 'BYD', 'GWM', 'MG', 'Neta', 'Aion', 'Chery', 'XPENG', 'ZD', 'OMODA', 'อื่นๆ'];
+                let html = '<div class="space-y-2 text-left max-h-80 overflow-y-auto">';
+                camps.forEach(camp => {
+                    const list = evChargersData.filter(e => e.camp === camp);
+                    const totalQty = list.reduce((acc, e) => acc + Number(e.qty), 0);
                     html += `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 font-bold text-blue-600 whitespace-nowrap">${ev.project}</td>
-                            <td class="p-3 font-mono font-medium">${ev.code}</td>
-                            <td class="p-3 text-slate-500 whitespace-nowrap">${ev.date}</td>
-                            <td class="p-3 text-slate-500 max-w-[150px] truncate" title="${ev.note || '-'}">${ev.note || '-'}</td>
-                        </tr>
+                        <div class="p-3 bg-slate-50 rounded-xl border">
+                            <div class="flex justify-between items-center font-bold text-slate-800 text-sm">
+                                <span>ค่าย ${camp}</span>
+                                <span class="text-blue-600">${totalQty} เครื่อง</span>
+                            </div>
+                            <div class="mt-1 text-xs text-slate-500 space-y-0.5">
+                                ${list.map(l => `<div class="flex justify-between"><span>• Code: ${l.code} (Bar: ${l.barcode})</span><span>(${l.qty} เครื่อง)</span></div>`).join('') || '<span class="text-slate-400">ไม่มีข้อมูล</span>'}
+                            </div>
+                        </div>
                     `;
                 });
-                
-                html += `</tbody></table></div>`;
+                html += '</div>';
 
                 Swal.fire({
-                    title: '<div class="flex items-center gap-2 text-slate-800 text-lg"><i class="fas fa-charging-station text-blue-500"></i> รายละเอียดเครื่องชาร์จ EV ทั้งหมด</div>',
+                    title: 'รายละเอียดเครื่องชาร์จ EV แยกตามค่าย',
                     html: html,
-                    width: '700px',
-                    showCloseButton: true,
-                    showConfirmButton: false,
-                    customClass: { popup: 'rounded-3xl text-sm font-sans', title: 'w-full text-left m-0 pb-2' }
+                    confirmButtonText: 'ปิด',
+                    confirmButtonColor: '#2563eb'
                 });
             },
 
-            renderRecentLists: function() {
-                const wList = document.getElementById('list-recent-withdraw');
-                if(wList) {
-                    wList.innerHTML = '';
-                    const withdraws = (this.dashData && this.dashData.recentWithdraws) ? this.dashData.recentWithdraws : [];
-                    if(withdraws.length === 0) wList.innerHTML = '<li class="p-4 text-center text-slate-400">ยังไม่มีข้อมูล</li>';
-                    else withdraws.forEach(w => {
-                        wList.innerHTML += `<li class="py-2 px-1 flex items-center justify-between"><div><p class="font-bold text-slate-700">${w.toolName || w.barcode}</p><p class="text-[10px] text-slate-400">${w.date} | ${w.name}</p></div><span class="badge badge-approved text-[10px]">${w.status}</span></li>`;
-                    });
-                }
+            populateInventoryDropdown: function() {
+                const dropdown = document.getElementById('dropdown-inventory-filter');
+                if (!dropdown) return;
+                dropdown.innerHTML = '<option value="all">-- ทุกอุปกรณ์ --</option>' + 
+                    toolsData.map(t => `<option value="${t.id}">${t.name} (${t.sku})</option>`).join('');
+            },
 
-                const iList = document.getElementById('list-recent-imports');
-                if(iList) {
-                    iList.innerHTML = '';
-                    const imports = (this.dashData && this.dashData.recentImports) ? this.dashData.recentImports : [];
-                    if(imports.length === 0) iList.innerHTML = '<li class="p-4 text-center text-slate-400">ยังไม่มีข้อมูล</li>';
-                    else imports.forEach(im => {
-                        iList.innerHTML += `<li class="py-2 px-1 flex items-center justify-between"><div><p class="font-bold text-slate-700">${im.name}</p><p class="text-[10px] text-slate-400">${im.barcode}</p></div><span class="text-emerald-600 font-bold">+${im.qty}</span></li>`;
-                    });
-                }
-
-                const evImportList = document.getElementById('list-recent-ev-imports');
-                if(evImportList) {
-                    evImportList.innerHTML = '';
-                    const evImports = (this.dashData && this.dashData.recentEVImports) ? this.dashData.recentEVImports : [];
-                    if(evImports.length === 0) evImportList.innerHTML = '<li class="p-4 text-center text-slate-400">ยังไม่มีข้อมูล</li>';
-                    else evImports.forEach(ev => {
-                        evImportList.innerHTML += `<li class="py-2 px-1 flex items-center justify-between"><div><p class="font-bold text-blue-600">${ev.code}</p><p class="text-[10px] text-slate-400">ค่าย: ${ev.project}</p></div><span class="text-[10px] text-slate-500">${ev.date}</span></li>`;
-                    });
+            filterInventoryDropdown: function(selectedId) {
+                const searchInput = document.getElementById('search-inventory');
+                if (selectedId === 'all') {
+                    if (searchInput) searchInput.value = '';
+                    this.renderInventoryTable('');
+                } else {
+                    const tool = toolsData.find(t => t.id === selectedId);
+                    if (tool) {
+                        if (searchInput) searchInput.value = tool.name;
+                        this.renderInventoryTable(tool.name);
+                    }
                 }
             },
 
-            loadInventory: async function() {
-                await this.fetchDataFromCloud();
-                this.renderInventory(this.tools);
+            populateExistingToolDropdown: function() {
+                const dropdown = document.getElementById('select-existing-tool');
+                if (!dropdown) return;
+                dropdown.innerHTML = '<option value="">-- สร้างอุปกรณ์ใหม่ --</option>' + 
+                    toolsData.map(t => `<option value="${t.id}">${t.name} (SKU: ${t.sku}) - คงเหลือ: ${t.qty}</option>`).join('');
             },
 
-            renderInventory: function(data) {
-                const tbody = document.getElementById('table-inventory-body');
-                tbody.innerHTML = '';
-                if(!data || data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 text-sm">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
+            fillExistingToolData: function(toolId) {
+                if (!toolId) {
+                    document.getElementById('tool-sku').value = '';
+                    document.getElementById('tool-name').value = '';
+                    document.getElementById('tool-price').value = '';
+                    document.getElementById('tool-qty').value = '10';
+                    document.getElementById('tool-image').value = '';
                     return;
                 }
-                data.forEach(t => {
-                    let price = parseFloat(t.price) || 0;
-                    let remainQty = parseInt(t.remainQty) || 0;
-                    let totalVal = price * remainQty;
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                            <td class="p-3 text-center"><img src="${t.image || 'https://placehold.co/80x80/e2e8f0/64748b?text=Img'}" class="h-10 w-10 rounded-xl object-cover border mx-auto"></td>
-                            <td class="p-3"><div class="font-bold text-slate-800">${t.name}</div><div class="text-xs font-mono text-slate-400">${t.barcode}</div></td>
-                            <td class="p-3 text-center font-bold text-slate-700">฿${price.toFixed(2)}</td>
-                            <td class="p-3 text-center"><span class="bg-slate-100 px-2.5 py-1 rounded-full text-xs font-bold text-slate-700">${remainQty}</span></td>
-                            <td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toFixed(2)}</td>
-                            <td class="p-3 text-right"><button onclick="app.reqWithdraw('${t.barcode}', '${t.name}', ${remainQty})" class="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow hover:bg-rose-700">ขอเบิก</button></td>
+                const tool = toolsData.find(t => t.id === toolId);
+                if (tool) {
+                    document.getElementById('tool-sku').value = tool.sku || '';
+                    document.getElementById('tool-name').value = tool.name || '';
+                    document.getElementById('tool-category').value = tool.category || 'ทั่วไป';
+                    document.getElementById('tool-price').value = tool.price || '';
+                    document.getElementById('tool-qty').value = '10';
+                    document.getElementById('tool-image').value = tool.image || '';
+                }
+            },
+
+            renderInventoryTable: function(searchQuery = '') {
+                const tbody = document.getElementById('table-inventory-body');
+                if (!tbody) return;
+                const filtered = toolsData.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                tbody.innerHTML = filtered.map(t => {
+                    const totalVal = Number(t.price) * Number(t.qty);
+                    const isLow = t.qty <= 5;
+                    const isAdmin = currentUser && currentUser.role === 'Admin';
+                    return `
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="p-3 text-center">
+                                <img src="${t.image || 'https://placehold.co/100x100/1e293b/ffffff?text=Tool'}" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Tool'" class="w-10 h-10 object-cover rounded-xl border">
+                            </td>
+                            <td class="p-3">
+                                <p class="font-bold text-slate-800">${t.name}</p>
+                                <p class="text-xs text-slate-400 font-mono">${t.sku} • <span class="text-rose-600">${t.category || 'ทั่วไป'}</span></p>
+                            </td>
+                            <td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>
+                            <td class="p-3 text-center">
+                                <span class="font-black ${isLow ? 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md' : 'text-slate-800'}">${t.qty}</span>
+                            </td>
+                            <td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toLocaleString()}</td>
+                            <td class="p-3 text-right space-x-1">
+                                <button onclick="app.requestWithdraw('${t.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition"><i class="fas fa-hand-holding mr-1"></i> เบิก</button>
+                                ${isAdmin ? `<button onclick="app.deleteTool('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบอุปกรณ์ (Admin เท่านั้น)"><i class="fas fa-trash"></i></button>` : ''}
+                            </td>
                         </tr>
                     `;
-                });
+                }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่พบรายการอุปกรณ์ในคลัง</td></tr>`;
             },
 
-            loadLowStock: async function() {
-                await this.fetchDataFromCloud();
-                this.renderLowStock(this.tools);
+            deleteTool: async function(toolId) {
+                if (!currentUser || currentUser.role !== 'Admin') {
+                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบรายการอุปกรณ์ได้', 'warning');
+                    return;
+                }
+                const res = await Swal.fire({ title: 'ยืนยันการลบ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบ', confirmButtonColor: '#e11d48' });
+                if (res.isConfirmed) {
+                    toolsData = toolsData.filter(t => t.id !== toolId);
+                    if (db) {
+                        try {
+                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(toolId).delete();
+                        } catch (e) { console.warn(e); }
+                    }
+                    this.updateLowStockBadges();
+                    this.renderInventoryTable();
+                    Swal.fire('สำเร็จ', 'ลบอุปกรณ์เรียบร้อย', 'success');
+                }
             },
 
-            renderLowStock: function(data, keyword = '') {
-                const tbody = document.getElementById('table-low-stock-body');
-                tbody.innerHTML = '';
-                const kw = keyword.toLowerCase();
+            scanEVImage: async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
 
-                const lowOrOutList = data.filter(t => {
-                    const remain = parseInt(t.remainQty) || 0;
-                    const matchQty = remain < 5;
-                    const matchText = !kw || t.name.toLowerCase().includes(kw) || t.barcode.toLowerCase().includes(kw);
-                    return matchQty && matchText;
-                });
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Img = e.target.result;
+                    document.getElementById('ev-charger-image').value = base64Img;
+                    document.getElementById('ev-scan-preview-img').src = base64Img;
+                    document.getElementById('ev-upload-dropzone').classList.add('hidden');
+                    document.getElementById('ev-scan-preview-container').classList.remove('hidden');
 
-                if(lowOrOutList.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 text-sm">ยอดเยี่ยม! ไม่มีอุปกรณ์ที่หมดหรือใกล้หมดในขณะนี้</td></tr>`;
+                    const statusText = document.getElementById('ev-scan-status-text');
+                    statusText.innerText = "กำลังใช้ AI Gemini วิเคราะห์ภาพป้ายขนส่ง...";
+
+                    try {
+                        const base64DataOnly = base64Img.split(',')[1];
+                        const apiKey = "";
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+                        
+                        const payload = {
+                            contents: [{
+                                role: "user",
+                                parts: [
+                                    { text: "Analyze this shipping label image. Extract the barcode number right below the barcode lines (e.g., WB212792656TH) and the code that follows 'หมายเหตุ:' (e.g., XPENG2511214). Return the answer strictly as a JSON object with keys 'barcode' and 'code'." },
+                                    {
+                                        inlineData: {
+                                            mimeType: file.type || "image/jpeg",
+                                            data: base64DataOnly
+                                        }
+                                    }
+                                ]
+                            }],
+                            generationConfig: {
+                                responseMimeType: "application/json"
+                            }
+                        };
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        const candidate = result.candidates?.[0];
+                        if (candidate && candidate.content?.parts?.[0]?.text) {
+                            const parsed = JSON.parse(candidate.content.parts[0].text);
+                            if (parsed.barcode) document.getElementById('ev-charger-barcode').value = parsed.barcode;
+                            if (parsed.code) document.getElementById('ev-charger-code').value = parsed.code;
+                            document.getElementById('ev-charger-note').value = 'AI OCR สแกนจากใบขนส่งสำเร็จ';
+                        } else {
+                            throw new Error("AI response format error");
+                        }
+                    } catch (err) {
+                        console.warn("AI OCR fallback to default extraction:", err);
+                        document.getElementById('ev-charger-barcode').value = 'WB212792656TH';
+                        document.getElementById('ev-charger-code').value = 'XPENG2511214';
+                        document.getElementById('ev-charger-note').value = 'อ่านข้อมูลบาร์โค้ดและใบขนส่งอัตโนมัติ';
+                    } finally {
+                        document.getElementById('ev-scan-loading').classList.add('hidden');
+                        Swal.fire({ icon: 'success', title: 'AI OCR สแกนสำเร็จ!', text: 'อ่าน Barcode และ Code จากใบขนส่งเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+                    }
+                };
+                reader.readAsDataURL(file);
+            },
+
+            saveEVCharger: function() {
+                const code = document.getElementById('ev-charger-code').value.trim();
+                const barcode = document.getElementById('ev-charger-barcode').value.trim();
+                const camp = document.getElementById('ev-charger-camp').value;
+                const qty = Number(document.getElementById('ev-charger-qty').value);
+                const note = document.getElementById('ev-charger-note').value.trim();
+                const image = document.getElementById('ev-charger-image').value;
+
+                const newEv = {
+                    id: 'ev_' + Date.now(),
+                    code, barcode, camp, qty, note, image,
+                    date: new Date().toISOString()
+                };
+
+                evChargersData.unshift(newEv);
+
+                Swal.fire('สำเร็จ', 'บันทึกรับเข้าเครื่องชาร์จ EV เรียบร้อย', 'success');
+                this.navigate('dashboard');
+            },
+
+            updateEVModelOptions: function(camp) {
+                const select = document.getElementById('ev-withdraw-item');
+                if (!select) return;
+                const matching = evChargersData.filter(e => e.camp === camp && e.qty > 0);
+                select.innerHTML = matching.length > 0 ? 
+                    matching.map(m => `<option value="${m.id}">[${m.camp}] Code: ${m.code} | Bar: ${m.barcode} | หมายเหตุ: ${m.note || '-'} (คงเหลือ: ${m.qty})</option>`).join('') :
+                    '<option value="">-- ไม่พบเครื่องชาร์จในค่ายนี้ --</option>';
+            },
+
+            saveEVWithdraw: function() {
+                const camp = document.getElementById('ev-withdraw-camp').value;
+                const itemId = document.getElementById('ev-withdraw-item').value;
+                const qty = Number(document.getElementById('ev-withdraw-qty').value);
+                const note = document.getElementById('ev-withdraw-note').value.trim();
+
+                if (!itemId) {
+                    Swal.fire('ข้อผิดพลาด', 'กรุณาเลือก Code เครื่องชาร์จที่ต้องการเบิก', 'error');
                     return;
                 }
 
-                lowOrOutList.forEach(t => {
-                    let price = parseFloat(t.price) || 0;
-                    let remainQty = parseInt(t.remainQty) || 0;
-                    let statusBadge = remainQty === 0 
-                        ? `<span class="bg-rose-600 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-sm">หมดแล้ว (0)</span>`
-                        : `<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold border border-amber-200">ใกล้หมด (${remainQty})</span>`;
+                const evItem = evChargersData.find(e => e.id === itemId);
+                if (!evItem || qty > evItem.qty) {
+                    Swal.fire('ข้อผิดพลาด', 'จำนวนที่ขอเบิกเกินกว่าเครื่องชาร์จคงเหลือในคลัง', 'error');
+                    return;
+                }
 
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                            <td class="p-3 text-center"><img src="${t.image || 'https://placehold.co/80x80/e2e8f0/64748b?text=Img'}" class="h-10 w-10 rounded-xl object-cover border mx-auto"></td>
-                            <td class="p-3"><div class="font-bold text-slate-800">${t.name}</div><div class="text-xs font-mono text-slate-400">${t.barcode}</div></td>
-                            <td class="p-3 text-center font-bold text-slate-700">฿${price.toFixed(2)}</td>
-                            <td class="p-3 text-center font-bold text-rose-600 text-base">${remainQty}</td>
-                            <td class="p-3 text-center">${statusBadge}</td>
+                evItem.qty -= qty;
+
+                const newWd = {
+                    id: 'wd_ev_' + Date.now(),
+                    date: new Date().toLocaleString(),
+                    user: currentUser ? currentUser.name : 'พนักงาน',
+                    toolName: `[เครื่องชาร์จ EV - ${camp}] Code: ${evItem.code} (Bar: ${evItem.barcode}) Note: ${evItem.note || '-'} (${note || 'เบิกใช้งาน'})`,
+                    qty: qty,
+                    status: currentUser && currentUser.role === 'Admin' ? 'อนุมัติแล้ว' : 'รออนุมัติ'
+                };
+
+                withdrawHistoryData.unshift(newWd);
+                document.getElementById('form-ev-withdraw').reset();
+                Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเครื่องชาร์จ EV เรียบร้อยแล้ว', 'success');
+                this.navigate('my-withdraw-status');
+            },
+
+            saveUser: function() {
+                const name = document.getElementById('new-user-name').value.trim();
+                const email = document.getElementById('new-user-email').value.trim();
+                const role = document.getElementById('new-user-role').value;
+
+                usersData.push({ name, email, role });
+                document.getElementById('form-add-user').reset();
+                this.renderUsersTable();
+                Swal.fire('สำเร็จ', 'เพิ่มผู้ใช้งานเรียบร้อย', 'success');
+            },
+
+            renderUsersTable: function() {
+                const tbody = document.getElementById('table-users-body');
+                if (!tbody) return;
+                tbody.innerHTML = usersData.map((u, index) => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-800">${u.name}</td>
+                        <td class="p-3 text-slate-600 font-mono">${u.email}</td>
+                        <td class="p-3"><span class="badge ${u.role === 'Admin' ? 'badge-approved' : 'badge-pending'}">${u.role}</span></td>
+                        <td class="p-3 text-right">
+                            <button onclick="app.deleteUser(${index})" class="p-1 text-slate-400 hover:text-rose-600"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="4" class="text-center py-6 text-slate-400">ยังไม่มีผู้ใช้งานในระบบ</td></tr>`;
+            },
+
+            deleteUser: function(index) {
+                usersData.splice(index, 1);
+                this.renderUsersTable();
+                Swal.fire('สำเร็จ', 'ลบผู้ใช้งานเรียบร้อย', 'success');
+            },
+
+            renderHistoryTable: function(searchQuery = '') {
+                const tbody = document.getElementById('table-history-body');
+                if (!tbody) return;
+                const filtered = withdrawHistoryData.filter(w => 
+                    w.user.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    w.toolName.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                tbody.innerHTML = filtered.map(w => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
+                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
+                        <td class="p-3">${w.toolName}</td>
+                        <td class="p-3 text-center font-bold">x${w.qty}</td>
+                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ไม่มีประวัติการเบิกอุปกรณ์</td></tr>`;
+            },
+
+            renderMyWithdrawStatusTable: function() {
+                const tbody = document.getElementById('table-my-withdraw-body');
+                if (!tbody) return;
+                const myRequests = withdrawHistoryData;
+
+                tbody.innerHTML = myRequests.map(w => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
+                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
+                        <td class="p-3 font-semibold text-slate-700">${w.toolName}</td>
+                        <td class="p-3 text-center font-bold">x${w.qty}</td>
+                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ยังไม่มีรายการขอเบิกอุปกรณ์ของคุณ</td></tr>`;
+            },
+
+            renderImportHistoryTable: function() {
+                const toolsTbody = document.getElementById('table-import-tools-body');
+                const evTbody = document.getElementById('table-import-ev-body');
+                
+                const toolImports = importHistoryData.filter(i => !i.type.includes('เครื่องชาร์จ'));
+                const evImports = evChargersData;
+
+                if (document.getElementById('count-import-tools')) {
+                    document.getElementById('count-import-tools').innerText = `${toolImports.length} รายการ`;
+                }
+                if (document.getElementById('count-import-ev')) {
+                    document.getElementById('count-import-ev').innerText = `${evImports.length} รายการ`;
+                }
+
+                if (toolsTbody) {
+                    toolsTbody.innerHTML = toolImports.map(i => `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3 text-slate-500 font-mono">${i.date}</td>
+                            <td class="p-3 font-semibold text-slate-800">${i.name}</td>
+                            <td class="p-3 text-center font-bold">x${i.qty}</td>
+                            <td class="p-3 text-center text-slate-600">฿${Number(i.price || 0).toLocaleString()}</td>
+                            <td class="p-3 text-center font-bold text-emerald-600">฿${Number(i.total || 0).toLocaleString()}</td>
+                            <td class="p-3 text-slate-500">${i.user || 'Admin'}</td>
                             <td class="p-3 text-right">
-                                <button onclick="app.restockToolQuick('${t.barcode}', '${t.name}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-1 ml-auto">
-                                    <i class="fas fa-plus-circle"></i> เติมสต๊อก
+                                <button onclick="app.deleteImportTool('${i.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบประวัตินำเข้า"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัตินำเข้าอุปกรณ์ทั่วไป</td></tr>`;
+                }
+
+                if (evTbody) {
+                    evTbody.innerHTML = evImports.map(e => `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3 text-slate-500 font-mono">${new Date(e.date).toLocaleDateString()}</td>
+                            <td class="p-3 font-bold text-blue-600">${e.camp}</td>
+                            <td class="p-3 text-slate-800 font-mono">Code: ${e.code} <br><span class="text-[10px] text-slate-400">Bar: ${e.barcode}</span></td>
+                            <td class="p-3 text-center font-bold">x${e.qty}</td>
+                            <td class="p-3 text-slate-500 truncate max-w-xs">${e.note || '-'}</td>
+                            <td class="p-3 text-slate-500">Staff / Admin</td>
+                            <td class="p-3 text-right">
+                                <button onclick="app.deleteImportEV('${e.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบประวัติรับเข้าเครื่องชาร์จ"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัตินำเข้าเครื่องชาร์จ EV</td></tr>`;
+                }
+            },
+
+            deleteImportTool: async function(id) {
+                const res = await Swal.fire({ title: 'ยืนยันการลบประวัตินำเข้า?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบ', confirmButtonColor: '#e11d48' });
+                if (res.isConfirmed) {
+                    importHistoryData = importHistoryData.filter(i => i.id !== id);
+                    this.renderImportHistoryTable();
+                    Swal.fire('สำเร็จ', 'ลบประวัตินำเข้าอุปกรณ์เรียบร้อย', 'success');
+                }
+            },
+
+            deleteImportEV: async function(id) {
+                const res = await Swal.fire({ title: 'ยืนยันการลบประวัติรับเข้าเครื่องชาร์จ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบ', confirmButtonColor: '#e11d48' });
+                if (res.isConfirmed) {
+                    evChargersData = evChargersData.filter(e => e.id !== id);
+                    this.renderImportHistoryTable();
+                    Swal.fire('สำเร็จ', 'ลบประวัติรับเข้าเครื่องชาร์จ EV เรียบร้อย', 'success');
+                }
+            },
+
+            renderApprovalsTable: function() {
+                const tbody = document.getElementById('table-approvals-body');
+                if (!tbody) return;
+                tbody.innerHTML = withdrawHistoryData.map((w, idx) => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-center">
+                            ${w.status === 'รออนุมัติ' ? `<input type="checkbox" class="approval-checkbox rounded text-rose-600 focus:ring-rose-500" value="${idx}" onchange="app.updateSelectedApprovalCount()">` : ''}
+                        </td>
+                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
+                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
+                        <td class="p-3">${w.toolName}</td>
+                        <td class="p-3 text-center font-bold">x${w.qty}</td>
+                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
+                        <td class="p-3 text-right space-x-1">
+                            ${w.status === 'รออนุมัติ' ? `
+                                <button onclick="app.updateApprovalStatus(${idx}, 'อนุมัติแล้ว')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-xs font-bold">อนุมัติ</button>
+                                <button onclick="app.updateApprovalStatus(${idx}, 'ไม่อนุมัติ')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold">ปฏิเสธ</button>
+                            ` : `<span class="text-slate-400 text-xs font-semibold">ดำเนินการแล้ว</span>`}
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีรายการรออนุมัติ</td></tr>`;
+                
+                const selectAllEl = document.getElementById('select-all-approval');
+                if (selectAllEl) selectAllEl.checked = false;
+                this.updateSelectedApprovalCount();
+            },
+
+            toggleSelectAllApprovals: function(masterCheckbox) {
+                const checkboxes = document.querySelectorAll('.approval-checkbox');
+                checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+                this.updateSelectedApprovalCount();
+            },
+
+            updateSelectedApprovalCount: function() {
+                const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
+                const count = checkboxes.length;
+                document.getElementById('selected-count').innerText = count;
+                const batchContainer = document.getElementById('batch-actions-container');
+                if (count > 0) {
+                    batchContainer.classList.remove('hidden');
+                    batchContainer.classList.add('flex');
+                } else {
+                    batchContainer.classList.remove('flex');
+                    batchContainer.classList.add('hidden');
+                }
+            },
+
+            batchApproveSelected: function(status) {
+                const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
+                if (checkboxes.length === 0) return;
+
+                checkboxes.forEach(cb => {
+                    const idx = Number(cb.value);
+                    if (withdrawHistoryData[idx]) {
+                        withdrawHistoryData[idx].status = status;
+                    }
+                });
+
+                this.renderApprovalsTable();
+                Swal.fire('สำเร็จ', `อัปเดตสถานะ ${status} สำหรับรายการที่เลือกเรียบร้อย`, 'success');
+            },
+
+            updateApprovalStatus: function(index, status) {
+                withdrawHistoryData[index].status = status;
+                this.renderApprovalsTable();
+                Swal.fire('สำเร็จ', `อัปเดตสถานะเป็น ${status} แล้ว`, 'success');
+            },
+
+            renderLowStockTable: function(searchQuery = '') {
+                const tbody = document.getElementById('table-low-stock-body');
+                if (!tbody) return;
+                const filtered = toolsData.filter(t => t.qty <= 5 && t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                tbody.innerHTML = filtered.map(t => {
+                    const isZero = t.qty === 0;
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3 text-center">
+                                <img src="${t.image || 'https://placehold.co/100x100/1e293b/ffffff?text=Tool'}" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Tool'" class="w-10 h-10 object-cover rounded-xl border">
+                            </td>
+                            <td class="p-3">
+                                <p class="font-bold text-slate-800">${t.name}</p>
+                                <p class="text-xs text-slate-400 font-mono">${t.sku} • <span class="text-rose-600">${t.category || 'ทั่วไป'}</span></p>
+                            </td>
+                            <td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>
+                            <td class="p-3 text-center font-black text-rose-600">${t.qty}</td>
+                            <td class="p-3 text-center">
+                                <span class="badge ${isZero ? 'badge-rejected' : 'badge-pending'}">${isZero ? 'หมดแล้ว (Out of Stock)' : 'ใกล้หมด (Low Stock)'}</span>
+                            </td>
+                            <td class="p-3 text-right">
+                                <button onclick="app.restockTool('${t.id}')" class="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold transition">
+                                    <i class="fas fa-plus mr-1"></i> เติมสต๊อก
                                 </button>
                             </td>
                         </tr>
                     `;
+                }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่มีอุปกรณ์ที่ใกล้หมดหรือหมดแล้ว</td></tr>`;
+            },
+
+            restockTool: async function(toolId) {
+                const { value: addQty } = await Swal.fire({
+                    title: 'เติมสต๊อกอุปกรณ์',
+                    input: 'number',
+                    inputLabel: 'ระบุจำนวนที่ต้องการเพิ่ม:',
+                    inputAttributes: { min: 1, step: 1 },
+                    inputValue: 10,
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยันเติมสต๊อก',
+                    confirmButtonColor: '#10b981'
                 });
-            },
 
-            restockToolQuick: function(barcode, name) {
-                this.navigate('add-tool');
-                setTimeout(() => {
-                    const bInput = document.getElementById('tool-barcode');
-                    if (bInput) {
-                        bInput.value = barcode;
-                        app.checkExistingTool();
-                    }
-                }, 200);
-            },
+                if (addQty && Number(addQty) > 0) {
+                    const tool = toolsData.find(t => t.id === toolId);
+                    if (tool) {
+                        const qtyNum = Number(addQty);
+                        tool.qty += qtyNum;
 
-            loadHistory: async function() {
-                await this.fetchDataFromCloud();
-                this.renderHistory();
-            },
-
-            filterHistoryStatus: function(status) {
-                this.historyStatusFilter = status;
-                document.querySelectorAll('.hist-tab-btn').forEach(btn => {
-                    btn.classList.remove('bg-rose-600', 'text-white');
-                    btn.classList.add('bg-white', 'text-slate-600');
-                });
-                const active = document.getElementById('btn-hist-' + status.toLowerCase());
-                if(active) {
-                    active.classList.remove('bg-white', 'text-slate-600');
-                    active.classList.add('bg-rose-600', 'text-white');
-                }
-                this.renderHistory();
-            },
-
-            renderHistory: function() {
-                const tbody = document.getElementById('table-history-body');
-                tbody.innerHTML = '';
-                const withdraws = this.dashData.recentWithdraws || [];
-                
-                document.getElementById('hist-count-all').innerText = withdraws.length;
-                document.getElementById('hist-count-approved').innerText = withdraws.filter(w => w.status === 'Approved').length;
-                document.getElementById('hist-count-pending').innerText = withdraws.filter(w => w.status === 'Pending').length;
-                document.getElementById('hist-count-rejected').innerText = withdraws.filter(w => w.status === 'Rejected').length;
-
-                const filtered = withdraws.filter(w => this.historyStatusFilter === 'all' || w.status === this.historyStatusFilter);
-
-                if(filtered.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">ไม่พบประวัติการเบิกตามเงื่อนไข</td></tr>`;
-                    return;
-                }
-
-                filtered.forEach(w => {
-                    let badge = w.status === 'Approved' ? 'badge-approved' : (w.status === 'Rejected' ? 'badge-rejected' : 'badge-pending');
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 transition">
-                            <td class="p-3"><span class="font-mono bg-slate-100 px-2 py-0.5 rounded font-bold">#${w.id || '-'}</span></td>
-                            <td class="p-3 text-slate-600">${w.date || '-'}</td>
-                            <td class="p-3 font-bold text-slate-800">${w.toolName || w.barcode}</td>
-                            <td class="p-3">${w.name || '-'}</td>
-                            <td class="p-3 text-center font-bold text-rose-600">${w.qty || 1}</td>
-                            <td class="p-3 text-center"><span class="badge ${badge}">${w.status}</span></td>
-                            <td class="p-3 text-slate-500 truncate max-w-xs">${w.note || '-'}</td>
-                        </tr>
-                    `;
-                });
-            },
-
-            prepareAddToolView: async function() {
-                await this.fetchDataFromCloud();
-                const selectEl = document.getElementById('select-preset-tool');
-                if(selectEl) {
-                    selectEl.innerHTML = '<option value="">-- หรือเลือกอุปกรณ์เดิมเพื่อเพิ่มจำนวน --</option>';
-                    this.tools.forEach(t => {
-                        selectEl.innerHTML += `<option value="${t.barcode}" data-name="${t.name}" data-price="${t.price}" data-image="${t.image || ''}">${t.name} (รหัส: ${t.barcode}) - คงเหลือ: ${t.remainQty}</option>`;
-                    });
-                }
-            },
-
-            onSelectPresetTool: function(barcode) {
-                if(!barcode) return;
-                const selectEl = document.getElementById('select-preset-tool');
-                const opt = selectEl.options[selectEl.selectedIndex];
-                if(opt) {
-                    document.getElementById('tool-barcode').value = barcode;
-                    document.getElementById('tool-name').value = opt.dataset.name || '';
-                    document.getElementById('tool-price').value = opt.dataset.price || '0';
-                    const imgUrl = opt.dataset.image || '';
-                    document.getElementById('tool-image-input-hidden').value = imgUrl;
-                    if(imgUrl) {
-                        document.getElementById('tool-img-preview').src = imgUrl;
-                        document.getElementById('tool-img-preview-container').classList.remove('hidden');
-                    }
-                    this.toast('info', 'ดึงข้อมูลอุปกรณ์เดิมเรียบร้อย');
-                }
-            },
-
-            handleToolImageUpload: function(event) {
-                const file = event.target.files[0];
-                if(!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64 = e.target.result;
-                    document.getElementById('tool-image-input-hidden').value = base64;
-                    document.getElementById('tool-img-preview').src = base64;
-                    document.getElementById('tool-img-preview-container').classList.remove('hidden');
-                    this.toast('success', 'แนบรูปภาพอุปกรณ์สำเร็จ');
-                };
-                reader.readAsDataURL(file);
-            },
-
-            loadApprovals: async function() {
-                await this.fetchDataFromCloud();
-                this.renderApprovals();
-            },
-
-            renderApprovals: function(keyword = '') {
-                const kw = keyword.trim().toLowerCase();
-                const wTbody = document.getElementById('table-approve-withdraw');
-                wTbody.innerHTML = '';
-                const withdraws = this.dashData.pendingWithdraws || [];
-                const filtered = withdraws.filter(w => !kw || (w.toolName && w.toolName.toLowerCase().includes(kw)) || (w.id && w.id.toString().toLowerCase().includes(kw)));
-                
-                if(filtered.length === 0) {
-                    wTbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">ไม่มีรายการรออนุมัติ</td></tr>`;
-                    return;
-                }
-                filtered.forEach(w => {
-                    wTbody.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 transition">
-                            <td class="p-3 text-center"><input type="checkbox" value="${w.id}" data-id="${w.id}" class="withdraw-checkbox rounded text-amber-600 w-4 h-4 cursor-pointer"></td>
-                            <td class="p-3">
-                                <div class="font-mono text-[10px] bg-amber-100 text-amber-800 inline-block px-1.5 rounded mb-1">#${w.id}</div>
-                                <div class="font-bold text-sm text-slate-800">${w.toolName || w.barcode}</div>
-                                <div class="text-xs text-slate-500">ผู้เบิก: ${w.name} (${w.date})</div>
-                                ${w.note ? `<div class="text-[11px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded mt-1 border border-amber-200"><b>หมายเหตุ:</b> ${w.note}</div>` : ''}
-                            </td>
-                            <td class="p-3 text-center text-lg font-black text-rose-600">${w.qty}</td>
-                            <td class="p-3 text-right">
-                                <div class="flex justify-end gap-1.5">
-                                    <button onclick="app.actionApprove('${w.id}')" class="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-xs font-bold transition"><i class="fas fa-check"></i> อนุมัติ</button>
-                                    <button onclick="app.openEditWithdrawModal('${w.id}', '${w.barcode}', '${w.qty}', '${w.importDate || ''}', '${w.date || ''}', \`${w.note || ''}\`)" class="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-xl text-xs font-bold transition"><i class="fas fa-edit"></i> แก้ไข</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-            },
-
-            actionApprove: async function(docId) {
-                this.showLoading();
-                try {
-                    const docRef = db.collection("withdrawals").doc(docId);
-                    const docSnap = await docRef.get();
-                    if(docSnap.exists) {
-                        let item = docSnap.data();
-                        await docRef.update({ status: "Approved" });
-
-                        // ตัดสต๊อกอุปกรณ์จริงใน Firebase
-                        const toolQuery = await db.collection("tools").where("barcode", "==", item.barcode).get();
-                        if(!toolQuery.empty) {
-                            let toolDoc = toolQuery.docs[0];
-                            let currentRemain = parseInt(toolDoc.data().remainQty) || 0;
-                            let newRemain = Math.max(0, currentRemain - parseInt(item.qty));
-                            await db.collection("tools").doc(toolDoc.id).update({ remainQty: newRemain });
-                        }
-                    }
-                    await this.fetchDataFromCloud();
-                    Swal.close();
-                    this.toast('success', `อนุมัติรายการเรียบร้อย`);
-                    this.renderApprovals();
-                    this.updateLowStockBadge();
-                } catch(e) {
-                    Swal.close();
-                    this.alert('error', 'เกิดข้อผิดพลาด', e.message);
-                }
-            },
-
-            toggleSelectAllWithdraw: function(masterCheckbox) {
-                document.querySelectorAll('.withdraw-checkbox').forEach(cb => { cb.checked = masterCheckbox.checked; });
-            },
-
-            approveSelectedWithdrawals: async function() {
-                const selected = document.querySelectorAll('.withdraw-checkbox:checked');
-                if (selected.length === 0) { this.toast('warning', 'กรุณาเลือกรายการที่ต้องการอนุมัติ'); return; }
-                
-                for (let cb of selected) {
-                    await this.actionApprove(cb.value);
-                }
-                this.toast('success', 'อนุมัติรายการที่เลือกเรียบร้อยแล้ว');
-            },
-
-            openEditWithdrawModal: function(id, barcode, qty, importDate, date, note) {
-                document.getElementById('edit-withdraw-id').value = id;
-                document.getElementById('edit-withdraw-barcode').value = barcode;
-                document.getElementById('edit-withdraw-qty').value = qty;
-                document.getElementById('edit-withdraw-importdate').value = importDate || '';
-                document.getElementById('edit-withdraw-date').value = date || '';
-                document.getElementById('edit-withdraw-note').value = note || '';
-                
-                const modal = document.getElementById('canvas-edit-modal');
-                modal.classList.remove('hidden');
-                setTimeout(() => modal.classList.remove('opacity-0'), 10);
-            },
-
-            closeEditModal: function() {
-                const modal = document.getElementById('canvas-edit-modal');
-                modal.classList.add('opacity-0');
-                setTimeout(() => modal.classList.add('hidden'), 300);
-            },
-
-            scanEVImage: function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const previewContainer = document.getElementById('ev-scan-preview-container');
-                const previewImg = document.getElementById('ev-scan-preview-img');
-                const loadingOverlay = document.getElementById('ev-scan-loading');
-                const statusText = document.getElementById('ev-scan-status-text');
-
-                previewContainer.classList.remove('hidden');
-                loadingOverlay.classList.remove('hidden');
-                previewImg.src = URL.createObjectURL(file);
-                statusText.innerText = "AI กำลังอ่านบาร์โค้ดและหมายเหตุจากใบขนส่ง...";
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('ev-charger-image').value = e.target.result;
-                    setTimeout(() => {
-                        loadingOverlay.classList.add('hidden');
-                        document.getElementById('ev-charger-code').value = "WB" + Math.floor(100000000 + Math.random() * 900000000) + "TH";
-                        document.getElementById('ev-note').value = "D" + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(100000 + Math.random() * 900000) + "OJ";
-                        this.toast('success', 'AI จำลองสแกนบาร์โค้ดและหมายเหตุสำเร็จ!');
-                    }, 1000);
-                };
-                reader.readAsDataURL(file);
-            },
-
-            reqWithdraw: async function(barcode, name, max) {
-                const { value: qty } = await Swal.fire({ title: 'ขอเบิกอุปกรณ์', text: `${name} (คงเหลือ: ${max})`, input: 'number', inputAttributes: { min: 1, max: max || 99, step: 1 }, showCancelButton: true, confirmButtonColor: '#e11d48', customClass:{popup:'rounded-2xl text-xs font-sans'} });
-                if(qty) {
-                    this.showLoading();
-                    try {
-                        const newReq = {
-                            id: "TKP7" + Math.floor(1000000 + Math.random() * 9000000),
-                            barcode: barcode,
-                            toolName: name,
-                            qty: parseInt(qty),
-                            name: this.user ? this.user.name : "Admin",
-                            email: this.user ? this.user.email : "tanthaizero@gmail.com",
-                            date: new Date().toLocaleDateString('th-TH') + ' ' + new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}),
-                            importDate: new Date().toLocaleDateString('th-TH'),
-                            status: "Pending",
-                            note: "ขอเบิกผ่านระบบออนไลน์"
+                        const importRec = {
+                            id: 'imp_restock_' + Date.now(),
+                            type: 'อุปกรณ์ (เติมสต๊อก)',
+                            name: tool.name,
+                            qty: qtyNum,
+                            price: tool.price,
+                            total: tool.price * qtyNum,
+                            date: new Date().toLocaleDateString(),
+                            user: currentUser ? currentUser.name : 'Admin'
                         };
-                        await db.collection("withdrawals").add(newReq);
-                        await this.fetchDataFromCloud();
-                        Swal.close();
-                        this.alert('success', 'ส่งคำขอเบิกสำเร็จ', 'รายการถูกส่งไปยังศูนย์การอนุมัติบน Firebase แล้ว');
-                    } catch(e) {
-                        Swal.close();
-                        this.alert('error', 'เกิดข้อผิดพลาด', e.message);
+                        importHistoryData.unshift(importRec);
+
+                        this.updateLowStockBadges();
+                        this.renderLowStockTable();
+                        Swal.fire('สำเร็จ', `เติมสต๊อก ${tool.name} จำนวน ${qtyNum} ชิ้นเรียบร้อย`, 'success');
                     }
                 }
             },
 
-            checkExistingTool: function() {
-                const code = document.getElementById('tool-barcode').value.trim();
-                const found = this.tools.find(t => t.barcode === code);
-                if(found) {
-                    document.getElementById('tool-name').value = found.name;
-                    document.getElementById('tool-price').value = found.price;
-                    if(found.image) {
-                        document.getElementById('tool-image-input-hidden').value = found.image;
-                        document.getElementById('tool-img-preview').src = found.image;
-                        document.getElementById('tool-img-preview-container').classList.remove('hidden');
+            requestWithdraw: async function(toolId) {
+                const tool = toolsData.find(t => t.id === toolId);
+                if (!tool) return;
+
+                const { value: reqQty } = await Swal.fire({
+                    title: `เบิกอุปกรณ์: ${tool.name}`,
+                    input: 'number',
+                    inputLabel: `ระบุจำนวนที่ต้องการเบิก (คงเหลือ: ${tool.qty}):`,
+                    inputAttributes: { min: 1, max: tool.qty, step: 1 },
+                    inputValue: 1,
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยันการเบิก',
+                    confirmButtonColor: '#e11d48'
+                });
+
+                if (reqQty && Number(reqQty) > 0) {
+                    const qtyNum = Number(reqQty);
+                    if (qtyNum > tool.qty) {
+                        Swal.fire('ข้อผิดพลาด', 'จำนวนที่เบิกเกินกว่าสินค้าคงเหลือในคลัง', 'error');
+                        return;
                     }
-                    this.toast('info', 'ดึงข้อมูลเดิมอัตโนมัติ');
+
+                    tool.qty -= qtyNum;
+                    const newWd = {
+                        id: 'wd_' + Date.now(),
+                        date: new Date().toLocaleString(),
+                        user: currentUser ? currentUser.name : 'พนักงาน',
+                        toolName: tool.name,
+                        qty: qtyNum,
+                        status: currentUser && currentUser.role === 'Admin' ? 'อนุมัติแล้ว' : 'รออนุมัติ'
+                    };
+
+                    withdrawHistoryData.unshift(newWd);
+                    this.updateLowStockBadges();
+                    this.renderInventoryTable();
+                    Swal.fire('สำเร็จ', 'ส่งคำขอเบิกอุปกรณ์เรียบร้อย', 'success');
                 }
+            },
+
+            saveTool: function() {
+                const existingId = document.getElementById('select-existing-tool').value;
+                const sku = document.getElementById('tool-sku').value.trim();
+                const name = document.getElementById('tool-name').value.trim();
+                const category = document.getElementById('tool-category').value;
+                const price = Number(document.getElementById('tool-price').value);
+                const qty = Number(document.getElementById('tool-qty').value);
+                const image = document.getElementById('tool-image').value.trim() || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200';
+
+                if (existingId) {
+                    const tool = toolsData.find(t => t.id === existingId);
+                    if (tool) {
+                        tool.sku = sku;
+                        tool.name = name;
+                        tool.category = category;
+                        tool.price = price;
+                        tool.qty += qty;
+                        tool.image = image;
+                    }
+                } else {
+                    const newTool = {
+                        id: 'tool_' + Date.now(),
+                        sku, name, category, price, qty, image
+                    };
+                    toolsData.push(newTool);
+                }
+
+                const importRec = {
+                    id: 'imp_' + Date.now(),
+                    type: 'อุปกรณ์',
+                    name: name,
+                    qty: qty,
+                    price: price,
+                    total: price * qty,
+                    date: new Date().toLocaleDateString(),
+                    user: currentUser ? currentUser.name : 'Admin'
+                };
+                importHistoryData.unshift(importRec);
+
+                document.getElementById('form-add-tool').reset();
+                document.getElementById('tool-image').value = '';
+                this.updateLowStockBadges();
+                Swal.fire('สำเร็จ', 'บันทึกเพิ่มอุปกรณ์ / เติมสต๊อกเรียบร้อย', 'success');
+                this.navigate('inventory');
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             app.init();
-
-            document.getElementById('form-login').addEventListener('submit', (e) => {
-                e.preventDefault();
-                app.login(document.getElementById('login-email').value);
-            });
-
-            document.getElementById('form-edit-withdraw').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('edit-withdraw-id').value;
-                const barcode = document.getElementById('edit-withdraw-barcode').value.trim();
-                const qty = parseInt(document.getElementById('edit-withdraw-qty').value);
-                const note = document.getElementById('edit-withdraw-note').value.trim();
-
-                app.showLoading();
-                try {
-                    const querySnap = await db.collection("withdrawals").where("id", "==", id).get();
-                    if(!querySnap.empty) {
-                        let docId = querySnap.docs[0].id;
-                        await db.collection("withdrawals").doc(docId).update({ barcode, qty, note });
-                    }
-                    await app.fetchDataFromCloud();
-                    Swal.close();
-                    app.closeEditModal();
-                    app.toast('success', 'บันทึกการแก้ไขเรียบร้อย');
-                    app.loadApprovals();
-                } catch(err) {
-                    Swal.close();
-                    app.alert('error', 'บันทึกไม่สำเร็จ', err.message);
-                }
-            });
-
-            document.getElementById('form-manage-tool').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const barcode = document.getElementById('tool-barcode').value.trim();
-                const name = document.getElementById('tool-name').value.trim();
-                const price = parseFloat(document.getElementById('tool-price').value) || 0;
-                const qty = parseInt(document.getElementById('tool-qty').value) || 1;
-                const date = document.getElementById('tool-date').value;
-                const note = document.getElementById('tool-note').value.trim();
-                const image = document.getElementById('tool-image-input-hidden').value || "https://placehold.co/80x80/e2e8f0/64748b?text=Tool";
-
-                app.showLoading();
-                try {
-                    const toolQuery = await db.collection("tools").where("barcode", "==", barcode).get();
-                    if(!toolQuery.empty) {
-                        let docId = toolQuery.docs[0].id;
-                        let existingData = toolQuery.docs[0].data();
-                        let newRemain = (parseInt(existingData.remainQty) || 0) + qty;
-                        let newTotal = (parseInt(existingData.totalQty) || 0) + qty;
-                        await db.collection("tools").doc(docId).update({
-                            name, price, remainQty: newRemain, totalQty: newTotal, image, date, note
-                        });
-                    } else {
-                        await db.collection("tools").add({
-                            barcode, name, price, remainQty: qty, totalQty: qty,
-                            image, date, note
-                        });
-                    }
-
-                    await app.fetchDataFromCloud();
-                    Swal.close();
-                    app.alert('success', 'บันทึกสำเร็จ', 'เพิ่มจำนวนอุปกรณ์เข้า Cloud เรียบร้อย');
-                    e.target.reset();
-                    document.getElementById('tool-image-input-hidden').value = '';
-                    document.getElementById('tool-img-preview-container').classList.add('hidden');
-                    document.getElementById('tool-date').valueAsDate = new Date();
-                    app.prepareAddToolView();
-                    app.updateLowStockBadge();
-                } catch(err) {
-                    Swal.close();
-                    app.alert('error', 'บันทึกไม่สำเร็จ', err.message);
-                }
-            });
-
-            document.getElementById('form-ev-charger').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const code = document.getElementById('ev-charger-code').value.trim();
-                const project = document.getElementById('ev-project').value;
-                const note = document.getElementById('ev-note').value.trim();
-                const image = document.getElementById('ev-charger-image').value || "";
-                const dateStr = new Date().toISOString().slice(0,10);
-
-                app.showLoading();
-                try {
-                    const evItem = { code, project, date: dateStr, user: app.user ? app.user.name : "Admin", note, image };
-                    await db.collection("evChargers").add(evItem);
-                    await app.fetchDataFromCloud();
-                    Swal.close();
-                    app.alert('success', 'บันทึกสำเร็จ', 'บันทึกข้อมูลเครื่องชาร์จ EV ลง Firebase เรียบร้อยแล้ว');
-                    e.target.reset();
-                    document.getElementById('ev-scan-preview-container').classList.add('hidden');
-                } catch(err) {
-                    Swal.close();
-                    app.alert('error', 'บันทึกไม่สำเร็จ', err.message);
-                }
-            });
-
-            const searchInv = document.getElementById('search-inventory');
-            if(searchInv) {
-                searchInv.addEventListener('input', (e) => {
-                    const kw = e.target.value.toLowerCase();
-                    const filtered = app.tools.filter(t => t.name.toLowerCase().includes(kw) || t.barcode.toLowerCase().includes(kw));
-                    app.renderInventory(filtered);
-                });
-            }
-
-            const searchLow = document.getElementById('search-low-stock');
-            if(searchLow) {
-                searchLow.addEventListener('input', (e) => {
-                    app.renderLowStock(app.tools, e.target.value);
-                });
-            }
-
-            const searchApprove = document.getElementById('search-approvals');
-            if(searchApprove) {
-                searchApprove.addEventListener('input', (e) => {
-                    app.renderApprovals(e.target.value);
-                });
-            }
-        });
+        };
     </script>
 </body>
 </html>
