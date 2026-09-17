@@ -338,13 +338,13 @@
                 <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase tracking-wider">
+                            <thead id="table-inventory-head" class="bg-slate-50 border-b text-xs text-slate-500 font-semibold uppercase tracking-wider">
                                 <tr>
                                     <th class="p-3 w-16 text-center">รูป</th>
                                     <th class="p-3">ข้อมูลอุปกรณ์</th>
-                                    <th class="p-3 text-center">ราคาต่อหน่วย</th>
+                                    <th id="th-price-unit" class="p-3 text-center">ราคาต่อหน่วย</th>
                                     <th class="p-3 text-center">คงเหลือ</th>
-                                    <th class="p-3 text-center">มูลค่ารวม</th>
+                                    <th id="th-price-total" class="p-3 text-center">มูลค่ารวม</th>
                                     <th class="p-3 text-right">จัดการ</th>
                                 </tr>
                             </thead>
@@ -765,7 +765,7 @@
             <section id="view-users" class="page-transition hidden space-y-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800">จัดการยูสเซอร์และสิทธิ์การใช้งาน</h2>
-                    <p class="text-xs text-slate-500">กำหนดสิทธิ์ Admin หรือ Staff สำหรับผู้ใช้งานในระบบ</p>
+                    <p class="text-xs text-slate-500">กำหนดสิทธิ์ Admin หรือ Staff สำหรับผู้ใช้งานทั้งหมดในระบบ</p>
                 </div>
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm max-w-lg">
                     <form id="form-add-user" class="space-y-3">
@@ -1123,43 +1123,38 @@
                 }
             },
 
-            compressImage: function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+            loadLocalData: function() {
+                const localTools = localStorage.getItem('tkp7_tools');
+                const localEv = localStorage.getItem('tkp7_ev');
+                const localWd = localStorage.getItem('tkp7_wd');
+                const localImp = localStorage.getItem('tkp7_imp');
+                const localUsers = localStorage.getItem('tkp7_users');
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 600;
-                        const MAX_HEIGHT = 600;
-                        let width = img.width;
-                        let height = img.height;
+                toolsData = localTools ? JSON.parse(localTools) : [
+                    { id: '1', sku: 'TKP7-001', name: 'สายไฟ VAF 2x2.5 (100ม.)', category: 'ไฟฟ้า', price: 1250, qty: 15, image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200' },
+                    { id: '2', sku: 'TKP7-002', name: 'เบรกเกอร์กันดูด 32A', category: 'ไฟฟ้า', price: 450, qty: 3, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200' },
+                    { id: '3', sku: 'TKP7-003', name: 'สว่านกระแทกไร้สาย 20V', category: 'เครื่องมือช่าง', price: 2890, qty: 8, image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200' },
+                    { id: '4', sku: 'TKP7-004', name: 'หมวกนิรภัย (Safety Helmet)', category: 'ความปลอดภัย', price: 180, qty: 2, image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?w=200' },
+                    { id: '5', sku: 'TKP7-005', name: 'ตู้คอนซูมเนอร์ยูนิต 4 ช่อง', category: 'ไฟฟ้า', price: 650, qty: 0, image: 'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=200' }
+                ];
 
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
+                evChargersData = localEv ? JSON.parse(localEv) : [];
+                withdrawHistoryData = localWd ? JSON.parse(localWd) : [];
+                importHistoryData = localImp ? JSON.parse(localImp) : [];
+                usersData = localUsers ? JSON.parse(localUsers) : [
+                    { name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }
+                ];
 
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                this.updateLowStockBadges();
+                this.renderDashboard();
+            },
 
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                        document.getElementById('tool-image').value = compressedDataUrl;
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+            saveLocalData: function() {
+                localStorage.setItem('tkp7_tools', JSON.stringify(toolsData));
+                localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
+                localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
+                localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
+                localStorage.setItem('tkp7_users', JSON.stringify(usersData));
             },
 
             updateLowStockBadges: function() {
@@ -1475,10 +1470,16 @@
                 if (!tbody) return;
                 const filtered = toolsData.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
+                const isAdmin = currentUser && currentUser.role === 'Admin';
+                
+                const thPriceUnit = document.getElementById('th-price-unit');
+                const thPriceTotal = document.getElementById('th-price-total');
+                if (thPriceUnit) thPriceUnit.style.display = isAdmin ? '' : 'none';
+                if (thPriceTotal) thPriceTotal.style.display = isAdmin ? '' : 'none';
+
                 tbody.innerHTML = filtered.map(t => {
                     const totalVal = Number(t.price) * Number(t.qty);
                     const isLow = t.qty <= 5;
-                    const isAdmin = currentUser && currentUser.role === 'Admin';
                     return `
                         <tr class="hover:bg-slate-50/80 transition">
                             <td class="p-3 text-center">
@@ -1488,11 +1489,11 @@
                                 <p class="font-bold text-slate-800">${t.name}</p>
                                 <p class="text-xs text-slate-400 font-mono">${t.sku} • <span class="text-rose-600">${t.category || 'ทั่วไป'}</span></p>
                             </td>
-                            <td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>
+                            ${isAdmin ? `<td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>` : ''}
                             <td class="p-3 text-center">
                                 <span class="font-black ${isLow ? 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md' : 'text-slate-800'}">${t.qty}</span>
                             </td>
-                            <td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toLocaleString()}</td>
+                            ${isAdmin ? `<td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toLocaleString()}</td>` : ''}
                             <td class="p-3 text-right space-x-1">
                                 <button onclick="app.requestWithdraw('${t.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition"><i class="fas fa-hand-holding mr-1"></i> เบิก</button>
                                 ${isAdmin ? `
@@ -1502,7 +1503,7 @@
                             </td>
                         </tr>
                     `;
-                }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่พบรายการอุปกรณ์ในคลัง</td></tr>`;
+                }).join('') || `<tr><td colspan="${isAdmin ? 6 : 4}" class="text-center py-8 text-slate-400">ไม่พบรายการอุปกรณ์ในคลัง</td></tr>`;
             },
 
             editToolModal: async function(toolId) {
@@ -1787,7 +1788,7 @@
                 usersData.push(newUser);
                 this.saveLocalData();
 
-                if (db && isOnlineMode) {
+                if (db) {
                     try {
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(newUser.id).set(newUser);
                     } catch (e) {}
@@ -1806,11 +1807,85 @@
                         <td class="p-3 font-bold text-slate-800">${u.name}</td>
                         <td class="p-3 text-slate-600 font-mono">${u.email}</td>
                         <td class="p-3"><span class="badge ${u.role === 'Admin' ? 'badge-approved' : 'badge-pending'}">${u.role}</span></td>
-                        <td class="p-3 text-right">
-                            <button onclick="app.deleteUser('${u.id || index}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="fas fa-trash"></i></button>
+                        <td class="p-3 text-right space-x-1">
+                            <button onclick="app.editUserModal('${u.id || index}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition" title="แก้ไขผู้ใช้งาน"><i class="fas fa-edit mr-1"></i> แก้ไข</button>
+                            <button onclick="app.deleteUser('${u.id || index}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบผู้ใช้งาน"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `).join('') || `<tr><td colspan="4" class="text-center py-6 text-slate-400">ยังไม่มีผู้ใช้งานในระบบ</td></tr>`;
+            },
+
+            editUserModal: async function(identifier) {
+                if (!currentUser || currentUser.role !== 'Admin') {
+                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้งานได้', 'warning');
+                    return;
+                }
+
+                let user = null;
+                let userIndex = -1;
+
+                if (typeof identifier === 'string' && identifier.startsWith('user_')) {
+                    user = usersData.find(u => u.id === identifier);
+                } else {
+                    userIndex = Number(identifier);
+                    user = usersData[userIndex];
+                }
+
+                if (!user) return;
+
+                const { value: formValues } = await Swal.fire({
+                    title: 'แก้ไขข้อมูลผู้ใช้งาน',
+                    html: `
+                        <div class="space-y-3 text-left">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ชื่อ-นามสกุล</label>
+                                <input id="swal-user-name" class="swal2-input !m-0 !w-full !text-sm" value="${user.name || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">อีเมล</label>
+                                <input id="swal-user-email" type="email" class="swal2-input !m-0 !w-full !text-sm" value="${user.email || ''}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">สิทธิ์การใช้งาน</label>
+                                <select id="swal-user-role" class="swal2-input !m-0 !w-full !text-sm">
+                                    <option value="Staff" ${user.role === 'Staff' ? 'selected' : ''}>Staff (พนักงาน)</option>
+                                    <option value="Admin" ${user.role === 'Admin' ? 'selected' : ''}>Admin (ผู้ดูแลระบบ)</option>
+                                </select>
+                            </div>
+                        </div>
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการแก้ไข',
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonText: 'ยกเลิก',
+                    returnFocus: false,
+                    preConfirm: () => {
+                        return {
+                            name: document.getElementById('swal-user-name').value.trim(),
+                            email: document.getElementById('swal-user-email').value.trim(),
+                            role: document.getElementById('swal-user-role').value
+                        }
+                    }
+                });
+
+                if (formValues) {
+                    user.name = formValues.name;
+                    user.email = formValues.email;
+                    user.role = formValues.role;
+
+                    this.saveLocalData();
+                    if (db) {
+                        try {
+                            if (user.id && user.id.startsWith('user_')) {
+                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.id).set(user);
+                            }
+                        } catch (e) {}
+                    }
+
+                    this.renderUsersTable();
+                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', timer: 1500, showConfirmButton: false });
+                }
             },
 
             deleteUser: async function(identifier) {
@@ -1827,7 +1902,7 @@
                 if (res.isConfirmed) {
                     if (typeof identifier === 'string' && identifier.startsWith('user_')) {
                         usersData = usersData.filter(u => u.id !== identifier);
-                        if (db && isOnlineMode) {
+                        if (db) {
                             try {
                                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(identifier).delete();
                             } catch (e) {}
