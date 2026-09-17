@@ -866,7 +866,6 @@
                             firebase.initializeApp(firebaseConfig);
                         }
                         db = firebase.firestore();
-                        // Enable offline persistence if possible
                         try {
                             db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
                                 console.warn("Firestore persistence warning:", err.code);
@@ -946,7 +945,6 @@
                         console.warn("Firestore listener failed, switching to local storage fallback:", err);
                     }
                 }
-                // Fallback to localStorage
                 this.loadLocalData();
             },
 
@@ -955,6 +953,7 @@
                 const localEv = localStorage.getItem('tkp7_ev');
                 const localWd = localStorage.getItem('tkp7_wd');
                 const localImp = localStorage.getItem('tkp7_imp');
+                const localUsers = localStorage.getItem('tkp7_users');
 
                 toolsData = localTools ? JSON.parse(localTools) : [
                     { id: '1', sku: 'TKP7-001', name: 'สายไฟ VAF 2x2.5 (100ม.)', category: 'ไฟฟ้า', price: 1250, qty: 15, image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200' },
@@ -967,6 +966,9 @@
                 evChargersData = localEv ? JSON.parse(localEv) : [];
                 withdrawHistoryData = localWd ? JSON.parse(localWd) : [];
                 importHistoryData = localImp ? JSON.parse(localImp) : [];
+                usersData = localUsers ? JSON.parse(localUsers) : [
+                    { name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }
+                ];
 
                 this.updateLowStockBadges();
                 this.renderDashboard();
@@ -977,6 +979,7 @@
                 localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
                 localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
                 localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
+                localStorage.setItem('tkp7_users', JSON.stringify(usersData));
             },
 
             toggleSidebar: function() {
@@ -1101,6 +1104,20 @@
                             importHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             this.renderDashboard();
                         }, () => {});
+
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users')
+                        .onSnapshot((snapshot) => {
+                            usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            if (usersData.length === 0) {
+                                usersData = [{ id: 'admin_default', name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }];
+                            }
+                            if (document.getElementById('table-users-body')) {
+                                this.renderUsersTable();
+                            }
+                        }, () => {
+                            const localUsers = localStorage.getItem('tkp7_users');
+                            if (localUsers) usersData = JSON.parse(localUsers);
+                        });
                 } catch (e) {
                     this.loadLocalData();
                 }
@@ -1733,10 +1750,11 @@
                 evItem.qty -= qty;
 
                 if (db) {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(evItem.id).update({ qty: evItem.qty });
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(evItem.id).update({ qty: evItem.qty });
+                    } catch (e) {}
                 }
 
-                // กำหนดสถานะเป็น 'รออนุมัติ' เสมอเพื่อให้ไปปรากฏในศูนย์การอนุมัติ
                 const newWd = {
                     id: 'wd_ev_' + Date.now(),
                     date: new Date().toLocaleString(),
@@ -1747,23 +1765,34 @@
                 };
 
                 if (db) {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWd.id).set(newWd);
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWd.id).set(newWd);
+                    } catch (e) {}
                 } else {
                     withdrawHistoryData.unshift(newWd);
                 }
-
                 this.saveLocalData();
+
                 document.getElementById('form-ev-withdraw').reset();
                 Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเครื่องชาร์จ EV เรียบร้อยแล้ว (รอการอนุมัติจากผู้ดูแลระบบ)', 'success');
                 this.navigate('my-withdraw-status');
             },
 
-            saveUser: function() {
+            saveUser: async function() {
                 const name = document.getElementById('new-user-name').value.trim();
                 const email = document.getElementById('new-user-email').value.trim();
                 const role = document.getElementById('new-user-role').value;
 
-                usersData.push({ name, email, role });
+                const newUser = { id: 'user_' + Date.now(), name, email, role };
+                usersData.push(newUser);
+                this.saveLocalData();
+
+                if (db && isOnlineMode) {
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(newUser.id).set(newUser);
+                    } catch (e) {}
+                }
+
                 document.getElementById('form-add-user').reset();
                 this.renderUsersTable();
                 Swal.fire('สำเร็จ', 'เพิ่มผู้ใช้งานเรียบร้อย', 'success');
@@ -1778,16 +1807,38 @@
                         <td class="p-3 text-slate-600 font-mono">${u.email}</td>
                         <td class="p-3"><span class="badge ${u.role === 'Admin' ? 'badge-approved' : 'badge-pending'}">${u.role}</span></td>
                         <td class="p-3 text-right">
-                            <button onclick="app.deleteUser(${index})" class="p-1 text-slate-400 hover:text-rose-600"><i class="fas fa-trash"></i></button>
+                            <button onclick="app.deleteUser('${u.id || index}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `).join('') || `<tr><td colspan="4" class="text-center py-6 text-slate-400">ยังไม่มีผู้ใช้งานในระบบ</td></tr>`;
             },
 
-            deleteUser: function(index) {
-                usersData.splice(index, 1);
-                this.renderUsersTable();
-                Swal.fire('สำเร็จ', 'ลบผู้ใช้งานเรียบร้อย', 'success');
+            deleteUser: async function(identifier) {
+                const res = await Swal.fire({ 
+                    title: 'ยืนยันการลบผู้ใช้งาน?', 
+                    icon: 'warning', 
+                    showCancelButton: true, 
+                    confirmButtonText: 'ลบ', 
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: '#e11d48',
+                    returnFocus: false
+                });
+
+                if (res.isConfirmed) {
+                    if (typeof identifier === 'string' && identifier.startsWith('user_')) {
+                        usersData = usersData.filter(u => u.id !== identifier);
+                        if (db && isOnlineMode) {
+                            try {
+                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(identifier).delete();
+                            } catch (e) {}
+                        }
+                    } else {
+                        usersData.splice(Number(identifier), 1);
+                    }
+                    this.saveLocalData();
+                    this.renderUsersTable();
+                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบผู้ใช้งานเรียบร้อย', timer: 1500, showConfirmButton: false });
+                }
             },
 
             renderHistoryTable: function(searchQuery = '') {
