@@ -329,7 +329,7 @@
                 </div>
             </section>
 
-            <!-- EV Inventory View -->
+            <!-- EV Inventory View (ช่องค้นหาค้นหาครอบคลุมทุกฟิลด์ข้อมูล) -->
             <section id="view-ev-inventory" class="page-transition hidden space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
@@ -352,7 +352,7 @@
                             <option value="อื่นๆ">อื่นๆ</option>
                         </select>
                         <div class="relative w-full sm:w-64">
-                            <input type="text" id="search-ev-inventory" placeholder="ค้นหา Code, Barcode..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
+                            <input type="text" id="search-ev-inventory" placeholder="ค้นหาข้อความทั้งหมด..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm">
                             <i class="fas fa-search absolute left-4 top-3 text-slate-400 text-xs"></i>
                         </div>
                     </div>
@@ -839,8 +839,10 @@
                 evChargersData = localEv ? JSON.parse(localEv) : [];
                 withdrawHistoryData = localWd ? JSON.parse(localWd) : [];
                 importHistoryData = localImp ? JSON.parse(localImp) : [];
+                
+                // ตรวจสอบและกำหนดค่าเริ่มต้นให้มีอีเมลแอดมินของคุณเสมอ
                 usersData = localUsers ? JSON.parse(localUsers) : [
-                    { name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }
+                    { name: 'Surasit Thongnaul', email: 'tanthaizero@gmail.com', role: 'Admin' }
                 ];
 
                 this.updateLowStockBadges();
@@ -1091,11 +1093,15 @@
                 const tbody = document.getElementById('table-ev-inventory-body');
                 if (!tbody) return;
                 
-                const filtered = evChargersData.filter(e => 
-                    Number(e.qty) > 0 && 
-                    (e.code + ' ' + e.barcode + ' ' + e.camp).toLowerCase().includes(search.toLowerCase()) && 
-                    (camp === 'all' || e.camp === camp)
-                );
+                const query = search.toLowerCase().trim();
+                const filtered = evChargersData.filter(e => {
+                    if (Number(e.qty) <= 0) return false;
+                    if (camp !== 'all' && e.camp !== camp) return false;
+                    
+                    if (!query) return true;
+                    const combinedText = `${e.camp || ''} ${e.code || ''} ${e.barcode || ''} ${e.note || ''} ${e.qty || ''}`.toLowerCase();
+                    return combinedText.includes(query);
+                });
 
                 tbody.innerHTML = filtered.map(e => `
                     <tr class="hover:bg-slate-50">
@@ -1110,7 +1116,7 @@
                             <button onclick="app.deleteImportEV('${e.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
-                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่พบรายการเครื่องชาร์จ EV ที่มีสินค้าคงเหลือ</td></tr>`;
+                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่พบรายการเครื่องชาร์จ EV ที่ตรงกับคำค้นหา</td></tr>`;
             },
 
             requestWithdrawEV: async function(id) {
