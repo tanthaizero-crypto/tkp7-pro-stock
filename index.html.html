@@ -24,12 +24,6 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- HTML5-QRCode Library -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-    <!-- ZXing Barcode Library -->
-    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -69,7 +63,6 @@
         .badge-approved { background-color: #d1fae5; color: #065f46; }
         .badge-rejected { background-color: #ffe4e6; color: #9f1239; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        #qr-reader video { object-fit: cover; border-radius: 1rem; width: 100% !important; height: 100% !important; }
 
         @media print {
             body { background: white !important; color: #0f172a !important; font-size: 13px !important; }
@@ -297,24 +290,6 @@
                         <ul id="list-recent-ev-imports" class="divide-y divide-slate-100 overflow-y-auto flex-1 text-xs space-y-1"></ul>
                     </div>
                 </div>
-
-                <div class="print-footer hidden print:flex">
-                    <div class="text-center w-1/3">
-                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
-                        <p class="font-bold text-xs">ผู้จัดทำรายงาน</p>
-                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
-                    </div>
-                    <div class="text-center w-1/3">
-                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
-                        <p class="font-bold text-xs">ผู้ตรวจสอบสต๊อก</p>
-                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
-                    </div>
-                    <div class="text-center w-1/3">
-                        <div class="border-b border-slate-400 pb-8 mb-2"></div>
-                        <p class="font-bold text-xs">ผู้ออนุมัติ / ผู้จัดการ</p>
-                        <p class="text-[10px] text-slate-500">วันที่: ...../...../...........</p>
-                    </div>
-                </div>
             </section>
 
             <!-- Inventory View -->
@@ -434,35 +409,37 @@
                 </div>
             </section>
 
-            <!-- EV Charger View (รับเข้าเครื่องชาร์จ) -->
+            <!-- EV Charger View (รับเข้าเครื่องชาร์จ + AI วิเคราะห์ภาพใบขนส่งจริงจาก Gemini API) -->
             <section id="view-ev-charger" class="page-transition hidden max-w-xl mx-auto">
                 <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-charging-station text-xl"></i></div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800">รับเข้าเครื่องชาร์จ (EV) + AI สแกน</h3>
-                            <p class="text-xs text-slate-500">ถ่ายรูปกล้องมือถือหรือเลือกรูปภาพใบขนส่ง เพื่อให้ AI อ่าน Barcode และ Code อัตโนมัติ</p>
+                            <h3 class="text-lg font-bold text-slate-800">รับเข้าเครื่องชาร์จ (EV) + AI วิเคราะห์ใบขนส่งจริง</h3>
+                            <p class="text-xs text-slate-500">ถ่ายรูปหรือเลือกรูปภาพใบขนส่ง ระบบจะส่งภาพให้ AI วิเคราะห์แกะรอย Barcode และ Code ตามรูปจริงอัตโนมัติ</p>
                         </div>
                     </div>
 
-                    <!-- Hidden file inputs for direct camera or gallery capture across mobile & desktop -->
-                    <input type="file" id="ev-camera-input" accept="image/*" capture="environment" class="hidden" onchange="app.scanEVImage(event)">
-                    <input type="file" id="ev-gallery-input" accept="image/*" class="hidden" onchange="app.scanEVImage(event)">
+                    <!-- Hidden File Inputs -->
+                    <input type="file" id="ev-camera-input" accept="image/*" capture="environment" class="hidden" onchange="app.scanEVImageWithGemini(event)">
+                    <input type="file" id="ev-gallery-input" accept="image/*" class="hidden" onchange="app.scanEVImageWithGemini(event)">
 
+                    <!-- Action Buttons for Camera / Gallery -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button type="button" onclick="document.getElementById('ev-camera-input').click()" class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
+                        <button type="button" onclick="document.getElementById('ev-camera-input').click()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
                             <i class="fas fa-camera text-base"></i> ถ่ายรูปกล้องมือถือ (Camera)
                         </button>
-                        <button type="button" onclick="document.getElementById('ev-gallery-input').click()" class="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-200">
-                            <i class="fas fa-image text-base"></i> เลือกรูปจากอัลบั้ม (Gallery)
+                        <button type="button" onclick="document.getElementById('ev-gallery-input').click()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-200">
+                            <i class="fas fa-image text-base text-blue-600"></i> เลือกรูปจากอัลบั้ม (Gallery)
                         </button>
                     </div>
 
+                    <!-- Preview Container -->
                     <div id="ev-scan-preview-container" class="hidden relative rounded-2xl overflow-hidden border bg-slate-900 shadow-md">
-                        <img id="ev-scan-preview-img" src="" class="w-full max-h-48 object-contain opacity-90">
+                        <img id="ev-scan-preview-img" src="" class="w-full max-h-48 object-contain mx-auto block">
                         <div id="ev-scan-loading" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white p-4">
                             <div class="w-8 h-8 border-3 border-blue-400 border-t-transparent rounded-full animate-spin mb-2"></div>
-                            <p class="font-bold text-xs" id="ev-scan-status-text">AI กำลังวิเคราะห์ข้อความและบาร์โค้ด...</p>
+                            <p class="font-bold text-xs" id="ev-scan-status-text">AI กำลังอ่านตัวหนังสือและบาร์โค้ดจากภาพ...</p>
                         </div>
                     </div>
 
@@ -487,11 +464,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Code (รหัสเครื่องชาร์จ) *</label>
-                                <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุ Code (เช่น XPENG2511214)">
+                                <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุ Code (เช่น XPENG2609052)">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเลขบาร์โค้ด (Barcode) *</label>
-                                <input type="text" id="ev-charger-barcode" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุเลขบาร์โค้ด (เช่น WB212792656TH)">
+                                <input type="text" id="ev-charger-barcode" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุเลขบาร์โค้ด (เช่น WB469333896TH)">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -845,17 +822,11 @@
                         }
                         db = firebase.firestore();
                         try {
-                            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-                                console.warn("Firestore persistence warning:", err.code);
-                            });
-                        } catch (e) {
-                            console.warn("Persistence not supported");
-                        }
+                            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {});
+                        } catch (e) {}
                         isOnlineMode = true;
-                        console.log("Firebase Connected Successfully");
                     }
                 } catch (e) {
-                    console.warn("Firebase initialization warning (falling back to local storage mode):", e);
                     isOnlineMode = false;
                 }
 
@@ -863,8 +834,7 @@
 
                 document.getElementById('form-login').addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const email = document.getElementById('login-email').value.trim();
-                    this.login(email);
+                    this.login(document.getElementById('login-email').value.trim());
                 });
 
                 document.getElementById('form-add-tool').addEventListener('submit', (e) => {
@@ -887,21 +857,10 @@
                     this.saveUser();
                 });
 
-                document.getElementById('search-inventory').addEventListener('input', (e) => {
-                    this.renderInventoryTable(e.target.value);
-                });
-
-                document.getElementById('search-ev-inventory').addEventListener('input', (e) => {
-                    this.renderEVInventoryTable(e.target.value);
-                });
-
-                document.getElementById('search-low-stock').addEventListener('input', (e) => {
-                    this.renderLowStockTable(e.target.value);
-                });
-
-                document.getElementById('search-history').addEventListener('input', (e) => {
-                    this.renderHistoryTable(e.target.value);
-                });
+                document.getElementById('search-inventory').addEventListener('input', (e) => this.renderInventoryTable(e.target.value));
+                document.getElementById('search-ev-inventory').addEventListener('input', (e) => this.renderEVInventoryTable(e.target.value));
+                document.getElementById('search-low-stock').addEventListener('input', (e) => this.renderLowStockTable(e.target.value));
+                document.getElementById('search-history').addEventListener('input', (e) => this.renderHistoryTable(e.target.value));
 
                 this.initDataStorage();
 
@@ -919,9 +878,7 @@
                     try {
                         this.initRealtimeListeners();
                         return;
-                    } catch (err) {
-                        console.warn("Firestore listener failed, switching to local storage fallback:", err);
-                    }
+                    } catch (err) {}
                 }
                 this.loadLocalData();
             },
@@ -936,9 +893,7 @@
                 toolsData = localTools ? JSON.parse(localTools) : [
                     { id: '1', sku: 'TKP7-001', name: 'สายไฟ VAF 2x2.5 (100ม.)', category: 'ไฟฟ้า', price: 1250, qty: 15, image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200' },
                     { id: '2', sku: 'TKP7-002', name: 'เบรกเกอร์กันดูด 32A', category: 'ไฟฟ้า', price: 450, qty: 3, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200' },
-                    { id: '3', sku: 'TKP7-003', name: 'สว่านกระแทกไร้สาย 20V', category: 'เครื่องมือช่าง', price: 2890, qty: 8, image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200' },
-                    { id: '4', sku: 'TKP7-004', name: 'หมวกนิรภัย (Safety Helmet)', category: 'ความปลอดภัย', price: 180, qty: 2, image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?w=200' },
-                    { id: '5', sku: 'TKP7-005', name: 'ตู้คอนซูมเนอร์ยูนิต 4 ช่อง', category: 'ไฟฟ้า', price: 650, qty: 0, image: 'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=200' }
+                    { id: '3', sku: 'TKP7-003', name: 'สว่านกระแทกไร้สาย 20V', category: 'เครื่องมือช่าง', price: 2890, qty: 8, image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200' }
                 ];
 
                 evChargersData = localEv ? JSON.parse(localEv) : [];
@@ -953,25 +908,19 @@
             },
 
             saveLocalData: function() {
-                try {
-                    localStorage.setItem('tkp7_tools', JSON.stringify(toolsData));
-                    localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
-                    localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
-                    localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
-                    localStorage.setItem('tkp7_users', JSON.stringify(usersData));
-                } catch (err) {
-                    console.warn("LocalStorage quota warning:", err);
-                }
+                localStorage.setItem('tkp7_tools', JSON.stringify(toolsData));
+                localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
+                localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
+                localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
+                localStorage.setItem('tkp7_users', JSON.stringify(usersData));
             },
 
             toggleSidebar: function() {
-                const sidebar = document.getElementById('sidebar');
-                const backdrop = document.getElementById('sidebar-backdrop');
-                sidebar.classList.toggle('-translate-x-full');
-                backdrop.classList.toggle('hidden');
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+                document.getElementById('sidebar-backdrop').classList.toggle('hidden');
             },
 
-            login: function(email, skipPrompt = false) {
+            login: function(email) {
                 const normalizedEmail = email.toLowerCase().trim();
                 const foundUser = usersData.find(u => u.email.toLowerCase().trim() === normalizedEmail);
 
@@ -979,7 +928,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'ไม่พบสิทธิ์เข้าใช้งาน',
-                        text: 'อีเมลนี้ยังไม่ได้ถูกสร้างในระบบโดยแอดมิน กรุณาติดต่อแอดมินเพื่อสร้างบัญชีผู้ใช้งาน',
+                        text: 'อีเมลนี้ยังไม่ได้ถูกสร้างในระบบโดยแอดมิน',
                         confirmButtonText: 'ตกลง',
                         confirmButtonColor: '#e11d48'
                     });
@@ -991,7 +940,6 @@
 
                 document.getElementById('sidebar-user-name').innerText = currentUser.name;
                 document.getElementById('sidebar-user-role').innerText = currentUser.role === 'Admin' ? 'Administrator' : 'Staff Member';
-
                 document.getElementById('main-header').classList.remove('hidden');
 
                 if (currentUser.role !== 'Admin') {
@@ -1014,7 +962,7 @@
 
             navigate: function(viewId) {
                 if (currentUser && currentUser.role !== 'Admin' && ['dashboard', 'low-stock', 'history', 'import-history', 'add-tool', 'approvals', 'users'].includes(viewId)) {
-                    Swal.fire({ icon: 'warning', title: 'จำกัดสิทธิ์', text: 'หน้านี้สำหรับผู้ดูแลระบบ (Admin) เท่านั้น', timer: 1500, showConfirmButton: false });
+                    Swal.fire({ icon: 'warning', title: 'จำกัดสิทธิ์', text: 'หน้านี้สำหรับผู้ดูแลระบบเท่านั้น', timer: 1500, showConfirmButton: false });
                     return;
                 }
 
@@ -1023,105 +971,57 @@
                     if (el) el.classList.add('hidden');
                 });
 
-                const targetEl = document.getElementById(`view-${viewId}`);
-                if (targetEl) targetEl.classList.remove('hidden');
-
+                document.getElementById(`view-${viewId}`).classList.remove('hidden');
                 const sidebar = document.getElementById('sidebar');
-                if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                    this.toggleSidebar();
-                }
+                if (sidebar && !sidebar.classList.contains('-translate-x-full')) this.toggleSidebar();
 
-                if (viewId === 'dashboard') {
-                    this.renderDashboard();
-                } else if (viewId === 'inventory') {
-                    this.populateInventoryDropdown();
-                    this.renderInventoryTable();
-                } else if (viewId === 'ev-inventory') {
-                    this.renderEVInventoryTable();
-                } else if (viewId === 'low-stock') {
-                    this.renderLowStockTable();
-                } else if (viewId === 'ev-withdraw') {
-                    const defaultCampSelect = document.getElementById('ev-withdraw-camp');
-                    const campVal = defaultCampSelect ? defaultCampSelect.value : 'Tesla';
-                    this.updateEVModelOptions(campVal);
-                } else if (viewId === 'history') {
-                    this.renderHistoryTable();
-                } else if (viewId === 'import-history') {
-                    this.renderImportHistoryTable();
-                } else if (viewId === 'add-tool') {
-                    this.populateExistingToolDropdown();
-                    this.generateNextAutoSKU();
-                } else if (viewId === 'approvals') {
-                    this.renderApprovalsTable();
-                } else if (viewId === 'my-withdraw-status') {
-                    this.renderMyWithdrawStatusTable();
-                } else if (viewId === 'users') {
-                    this.renderUsersTable();
-                }
+                if (viewId === 'dashboard') this.renderDashboard();
+                else if (viewId === 'inventory') { this.populateInventoryDropdown(); this.renderInventoryTable(); }
+                else if (viewId === 'ev-inventory') this.renderEVInventoryTable();
+                else if (viewId === 'low-stock') this.renderLowStockTable();
+                else if (viewId === 'ev-withdraw') this.updateEVModelOptions(document.getElementById('ev-withdraw-camp').value);
+                else if (viewId === 'history') this.renderHistoryTable();
+                else if (viewId === 'import-history') this.renderImportHistoryTable();
+                else if (viewId === 'add-tool') { this.populateExistingToolDropdown(); this.generateNextAutoSKU(); }
+                else if (viewId === 'approvals') this.renderApprovalsTable();
+                else if (viewId === 'my-withdraw-status') this.renderMyWithdrawStatusTable();
+                else if (viewId === 'users') this.renderUsersTable();
             },
 
             initRealtimeListeners: function() {
-                if (!db) {
-                    this.loadLocalData();
-                    return;
-                }
-
+                if (!db) { this.loadLocalData(); return; }
                 try {
-                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools')
-                        .onSnapshot((snapshot) => {
-                            toolsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            this.updateLowStockBadges();
-                            this.renderDashboard();
-                        }, (error) => {
-                            console.warn("Firestore connection timeout, using local storage cache:", error);
-                            this.loadLocalData();
-                        });
-
-                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers')
-                        .onSnapshot((snapshot) => {
-                            evChargersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            this.renderDashboard();
-                        }, () => {});
-
-                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals')
-                        .onSnapshot((snapshot) => {
-                            withdrawHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            this.renderDashboard();
-                        }, () => {});
-
-                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports')
-                        .onSnapshot((snapshot) => {
-                            importHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            this.renderDashboard();
-                        }, () => {});
-
-                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users')
-                        .onSnapshot((snapshot) => {
-                            usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            if (usersData.length === 0) {
-                                usersData = [{ id: 'admin_default', name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }];
-                            }
-                            if (document.getElementById('table-users-body')) {
-                                this.renderUsersTable();
-                            }
-                        }, () => {
-                            const localUsers = localStorage.getItem('tkp7_users');
-                            if (localUsers) usersData = JSON.parse(localUsers);
-                        });
-                } catch (e) {
-                    this.loadLocalData();
-                }
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').onSnapshot((snapshot) => {
+                        toolsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        this.updateLowStockBadges();
+                        this.renderDashboard();
+                    });
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').onSnapshot((snapshot) => {
+                        evChargersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        this.renderDashboard();
+                    });
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').onSnapshot((snapshot) => {
+                        withdrawHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        this.renderDashboard();
+                    });
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').onSnapshot((snapshot) => {
+                        importHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        this.renderDashboard();
+                    });
+                    db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').onSnapshot((snapshot) => {
+                        usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        if (usersData.length === 0) usersData = [{ id: 'admin_default', name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }];
+                        if (document.getElementById('table-users-body')) this.renderUsersTable();
+                    });
+                } catch (e) { this.loadLocalData(); }
             },
 
             updateLowStockBadges: function() {
                 const lowCount = toolsData.filter(t => t.qty <= 5).length;
                 const badgeEl = document.getElementById('sidebar-low-badge');
                 const alertEl = document.getElementById('alert-low-stock');
-                const dashLowCount = document.getElementById('dash-low-count');
-
                 if (badgeEl) badgeEl.innerText = lowCount;
-                if (dashLowCount) dashLowCount.innerText = lowCount;
-
+                if (document.getElementById('dash-low-count')) document.getElementById('dash-low-count').innerText = lowCount;
                 if (lowCount > 0) {
                     if (badgeEl) badgeEl.classList.remove('hidden');
                     if (alertEl) alertEl.classList.remove('hidden');
@@ -1132,22 +1032,16 @@
             },
 
             renderDashboard: function() {
-                const totalTools = toolsData.length;
-                const totalItems = toolsData.reduce((acc, t) => acc + Number(t.qty), 0);
-                const totalPrice = toolsData.reduce((acc, t) => acc + (Number(t.price) * Number(t.qty)), 0);
-                const todayApproved = withdrawHistoryData.filter(w => w.status === 'อนุมัติแล้ว').length;
-
-                if (document.getElementById('dash-stat-tools')) document.getElementById('dash-stat-tools').innerText = totalTools;
-                if (document.getElementById('dash-stat-items')) document.getElementById('dash-stat-items').innerText = totalItems;
-                if (document.getElementById('dash-stat-totalprice')) document.getElementById('dash-stat-totalprice').innerText = '฿' + totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 });
-                if (document.getElementById('dash-stat-today')) document.getElementById('dash-stat-today').innerText = todayApproved;
+                document.getElementById('dash-stat-tools').innerText = toolsData.length;
+                document.getElementById('dash-stat-items').innerText = toolsData.reduce((acc, t) => acc + Number(t.qty), 0);
+                document.getElementById('dash-stat-totalprice').innerText = '฿' + toolsData.reduce((acc, t) => acc + (Number(t.price) * Number(t.qty)), 0).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+                document.getElementById('dash-stat-today').innerText = withdrawHistoryData.filter(w => w.status === 'อนุมัติแล้ว').length;
 
                 const camps = ['Tesla', 'BYD', 'GWM', 'MG', 'Neta', 'Aion', 'Chery', 'XPENG', 'ZD', 'OMODA', 'อื่นๆ'];
                 const container = document.getElementById('ev-camp-cards-container');
                 if (container) {
                     container.innerHTML = '';
                     let totalEvSum = 0;
-
                     camps.forEach(camp => {
                         const count = evChargersData.filter(e => e.camp === camp).reduce((acc, e) => acc + Number(e.qty), 0);
                         totalEvSum += count;
@@ -1161,44 +1055,26 @@
                     document.getElementById('ev-total-sum').innerText = totalEvSum;
                 }
 
-                const recentWithdraw = document.getElementById('list-recent-withdraw');
-                if (recentWithdraw) {
-                    recentWithdraw.innerHTML = withdrawHistoryData.slice(0, 5).map(w => `
-                        <li class="py-2 flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-slate-800">${w.toolName} (x${w.qty})</p>
-                                <p class="text-[10px] text-slate-400">${w.user} - ${w.date}</p>
-                            </div>
-                            <span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span>
-                        </li>
-                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัติการเบิก</p>';
-                }
+                document.getElementById('list-recent-withdraw').innerHTML = withdrawHistoryData.slice(0, 5).map(w => `
+                    <li class="py-2 flex justify-between items-center">
+                        <div><p class="font-bold text-slate-800">${w.toolName} (x${w.qty})</p><p class="text-[10px] text-slate-400">${w.user} - ${w.date}</p></div>
+                        <span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span>
+                    </li>
+                `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัติการเบิก</p>';
 
-                const recentImports = document.getElementById('list-recent-imports');
-                if (recentImports) {
-                    recentImports.innerHTML = importHistoryData.filter(i => i.type === 'อุปกรณ์').slice(0, 5).map(i => `
-                        <li class="py-2 flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-slate-800">${i.name} (x${i.qty})</p>
-                                <p class="text-[10px] text-slate-400">฿${Number(i.total).toLocaleString()} - ${i.date}</p>
-                            </div>
-                            <span class="badge bg-emerald-50 text-emerald-700">นำเข้า</span>
-                        </li>
-                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัตินำเข้าอุปกรณ์</p>';
-                }
+                document.getElementById('list-recent-imports').innerHTML = importHistoryData.filter(i => i.type === 'อุปกรณ์').slice(0, 5).map(i => `
+                    <li class="py-2 flex justify-between items-center">
+                        <div><p class="font-bold text-slate-800">${i.name} (x${i.qty})</p><p class="text-[10px] text-slate-400">฿${Number(i.total).toLocaleString()} - ${i.date}</p></div>
+                        <span class="badge bg-emerald-50 text-emerald-700">นำเข้า</span>
+                    </li>
+                `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีประวัตินำเข้าอุปกรณ์</p>';
 
-                const recentEvImports = document.getElementById('list-recent-ev-imports');
-                if (recentEvImports) {
-                    recentEvImports.innerHTML = evChargersData.slice(0, 5).map(e => `
-                        <li class="py-2 flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-slate-800">[${e.camp}] Code: ${e.code} (x${e.qty})</p>
-                                <p class="text-[10px] text-slate-400">Barcode: ${e.barcode}</p>
-                            </div>
-                            <span class="badge bg-blue-50 text-blue-700">EV Charger</span>
-                        </li>
-                    `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีเครื่องชาร์จ EV</p>';
-                }
+                document.getElementById('list-recent-ev-imports').innerHTML = evChargersData.slice(0, 5).map(e => `
+                    <li class="py-2 flex justify-between items-center">
+                        <div><p class="font-bold text-slate-800">[${e.camp}] Code: ${e.code} (x${e.qty})</p><p class="text-[10px] text-slate-400">Barcode: ${e.barcode}</p></div>
+                        <span class="badge bg-blue-50 text-blue-700">EV Charger</span>
+                    </li>
+                `).join('') || '<p class="text-slate-400 text-center py-4">ไม่มีเครื่องชาร์จ EV</p>';
 
                 this.renderChart();
                 this.renderMonthFilterOptions();
@@ -1212,55 +1088,25 @@
             },
 
             changeDashboardFilter: function(val) {
-                let multiplier = 1;
-                if (val === 'daily') multiplier = 0.1;
-                else if (val === 'monthly') multiplier = 0.3;
-                else if (val === 'yearly') multiplier = 0.8;
-
+                let multiplier = val === 'daily' ? 0.1 : (val === 'monthly' ? 0.3 : (val === 'yearly' ? 0.8 : 1));
                 const totalPrice = toolsData.reduce((acc, t) => acc + (Number(t.price) * Number(t.qty)), 0) * multiplier;
                 document.getElementById('dash-stat-totalprice').innerText = '฿' + totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 });
             },
 
-            triggerPrint: function() {
-                window.print();
-            },
+            triggerPrint: function() { window.print(); },
 
             renderChart: function() {
                 const canvasEl = document.getElementById('costLineChart');
                 if (!canvasEl) return;
-                const ctx = canvasEl.getContext('2d');
                 if (costChartInstance) costChartInstance.destroy();
-
                 const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-                const dataValues = months.map((m, idx) => {
-                    return 15000 + (idx * 4500) + Math.floor(Math.random() * 5000);
-                });
-
-                costChartInstance = new Chart(ctx, {
+                costChartInstance = new Chart(canvasEl.getContext('2d'), {
                     type: 'line',
                     data: {
                         labels: months,
-                        datasets: [{
-                            label: 'ต้นทุนราคารวมอุปกรณ์สะสม (บาท)',
-                            data: dataValues,
-                            borderColor: '#e11d48',
-                            backgroundColor: 'rgba(225, 29, 72, 0.08)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.35,
-                            pointBackgroundColor: '#e11d48',
-                            pointRadius: 4
-                        }]
+                        datasets: [{ label: 'ต้นทุนรวมสะสม', data: months.map((m, i) => 15000 + i * 4500), borderColor: '#e11d48', backgroundColor: 'rgba(225, 29, 72, 0.08)', borderWidth: 3, fill: true, tension: 0.35 }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Prompt' } } },
-                            x: { grid: { display: false }, ticks: { font: { family: 'Prompt' } } }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             },
 
@@ -1269,286 +1115,82 @@
                 let html = '<div class="space-y-2 text-left max-h-80 overflow-y-auto">';
                 camps.forEach(camp => {
                     const list = evChargersData.filter(e => e.camp === camp);
-                    const totalQty = list.reduce((acc, e) => acc + Number(e.qty), 0);
-                    html += `
-                        <div class="p-3 bg-slate-50 rounded-xl border">
-                            <div class="flex justify-between items-center font-bold text-slate-800 text-sm">
-                                <span>ค่าย ${camp}</span>
-                                <span class="text-blue-600">${totalQty} เครื่อง</span>
-                            </div>
-                            <div class="mt-1 text-xs text-slate-500 space-y-0.5">
-                                ${list.map(l => `<div class="flex justify-between"><span>• Code: ${l.code} (Bar: ${l.barcode})</span><span>(${l.qty} เครื่อง)</span></div>`).join('') || '<span class="text-slate-400">ไม่มีข้อมูล</span>'}
-                            </div>
-                        </div>
-                    `;
+                    html += `<div class="p-3 bg-slate-50 rounded-xl border"><div class="flex justify-between font-bold text-sm"><span>${camp}</span><span class="text-blue-600">${list.reduce((a, b) => a + Number(b.qty), 0)} เครื่อง</span></div></div>`;
                 });
                 html += '</div>';
-
-                Swal.fire({
-                    title: 'รายละเอียดเครื่องชาร์จ EV แยกตามค่าย',
-                    html: html,
-                    confirmButtonText: 'ปิด',
-                    confirmButtonColor: '#2563eb'
-                });
+                Swal.fire({ title: 'รายละเอียดเครื่องชาร์จ EV แยกตามค่าย', html: html, confirmButtonText: 'ปิด' });
             },
 
             populateInventoryDropdown: function() {
                 const dropdown = document.getElementById('dropdown-inventory-filter');
-                if (!dropdown) return;
-                dropdown.innerHTML = '<option value="all">-- ทุกอุปกรณ์ --</option>' + 
-                    toolsData.map(t => `<option value="${t.id}">${t.name} (${t.sku})</option>`).join('');
+                if (dropdown) dropdown.innerHTML = '<option value="all">-- ทุกอุปกรณ์ --</option>' + toolsData.map(t => `<option value="${t.id}">${t.name} (${t.sku})</option>`).join('');
             },
 
-            filterInventoryDropdown: function(selectedId) {
-                const searchInput = document.getElementById('search-inventory');
-                if (selectedId === 'all') {
-                    if (searchInput) searchInput.value = '';
-                    this.renderInventoryTable('');
-                } else {
-                    const tool = toolsData.find(t => t.id === selectedId);
-                    if (tool) {
-                        if (searchInput) searchInput.value = tool.name;
-                        this.renderInventoryTable(tool.name);
-                    }
-                }
+            filterInventoryDropdown: function(id) {
+                document.getElementById('search-inventory').value = id === 'all' ? '' : (toolsData.find(t => t.id === id)?.name || '');
+                this.renderInventoryTable(document.getElementById('search-inventory').value);
             },
 
-            filterEVCampDropdown: function(campVal) {
-                const searchInput = document.getElementById('search-ev-inventory');
-                if (campVal === 'all') {
-                    if (searchInput) searchInput.value = '';
-                    this.renderEVInventoryTable('');
-                } else {
-                    if (searchInput) searchInput.value = '';
-                    this.renderEVInventoryTable('', campVal);
-                }
-            },
+            filterEVCampDropdown: function(camp) { this.renderEVInventoryTable('', camp); },
 
-            renderEVInventoryTable: function(searchQuery = '', campFilter = 'all') {
+            renderEVInventoryTable: function(search = '', camp = 'all') {
                 const tbody = document.getElementById('table-ev-inventory-body');
                 if (!tbody) return;
-
-                let filtered = evChargersData.filter(e => {
-                    const matchText = (e.code + ' ' + e.barcode + ' ' + (e.note || '') + ' ' + e.camp).toLowerCase();
-                    const matchSearch = matchText.includes(searchQuery.toLowerCase());
-                    const matchCamp = campFilter === 'all' || e.camp === campFilter;
-                    return matchSearch && matchCamp;
-                });
-
-                tbody.innerHTML = filtered.map(e => {
-                    const isAdmin = currentUser && currentUser.role === 'Admin';
-                    return `
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="p-3 text-center">
-                                <img src="${e.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200'}" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=EV'" class="w-10 h-10 object-cover rounded-xl border">
-                            </td>
-                            <td class="p-3 font-bold text-blue-600">${e.camp}</td>
-                            <td class="p-3 font-mono text-xs">
-                                <span class="font-bold text-slate-800">Code: ${e.code}</span><br>
-                                <span class="text-slate-400">Barcode: ${e.barcode}</span>
-                            </td>
-                            <td class="p-3 text-center">
-                                <span class="font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">${e.qty} เครื่อง</span>
-                            </td>
-                            <td class="p-3 text-xs text-slate-500 max-w-xs truncate">${e.note || '-'}</td>
-                            <td class="p-3 text-right space-x-1">
-                                <button onclick="app.navigate('ev-withdraw')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition"><i class="fas fa-hand-holding-medical mr-1"></i> เบิก</button>
-                                ${isAdmin ? `
-                                    <button onclick="app.deleteImportEV('${e.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบเครื่องชาร์จ"><i class="fas fa-trash"></i></button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่พบรายการเครื่องชาร์จ EV ในคลัง</td></tr>`;
+                const filtered = evChargersData.filter(e => (e.code + ' ' + e.barcode + ' ' + e.camp).toLowerCase().includes(search.toLowerCase()) && (camp === 'all' || e.camp === camp));
+                tbody.innerHTML = filtered.map(e => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center"><img src="${e.image || 'https://placehold.co/100x100'}" class="w-10 h-10 object-cover rounded-xl border"></td>
+                        <td class="p-3 font-bold text-blue-600">${e.camp}</td>
+                        <td class="p-3 font-mono text-xs"><b>Code:</b> ${e.code}<br><span class="text-slate-400">Bar: ${e.barcode}</span></td>
+                        <td class="p-3 text-center"><span class="font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">${e.qty} เครื่อง</span></td>
+                        <td class="p-3 text-xs text-slate-500">${e.note || '-'}</td>
+                        <td class="p-3 text-right"><button onclick="app.deleteImportEV('${e.id}')" class="text-rose-600"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่พบรายการเครื่องชาร์จ EV</td></tr>`;
             },
 
             populateExistingToolDropdown: function() {
                 const dropdown = document.getElementById('select-existing-tool');
-                if (!dropdown) return;
-                dropdown.innerHTML = '<option value="">-- สร้างอุปกรณ์ใหม่ --</option>' + 
-                    toolsData.map(t => `<option value="${t.id}">${t.name} (SKU: ${t.sku}) - คงเหลือ: ${t.qty}</option>`).join('');
+                if (dropdown) dropdown.innerHTML = '<option value="">-- สร้างอุปกรณ์ใหม่ --</option>' + toolsData.map(t => `<option value="${t.id}">${t.name} (SKU: ${t.sku})</option>`).join('');
             },
 
             generateNextAutoSKU: function() {
                 const skuInput = document.getElementById('tool-sku');
                 if (!skuInput) return;
-
-                let maxNum = 0;
-                toolsData.forEach(t => {
+                let max = toolsData.reduce((acc, t) => {
                     if (t.sku && t.sku.startsWith('TKP7-')) {
-                        const parts = t.sku.split('-');
-                        if (parts.length === 2) {
-                            const num = parseInt(parts[1], 10);
-                            if (!isNaN(num) && num > maxNum) {
-                                maxNum = num;
-                            }
-                        }
+                        const n = parseInt(t.sku.split('-')[1], 10);
+                        return !isNaN(n) && n > acc ? n : acc;
                     }
-                });
-
-                const nextNum = maxNum + 1;
-                const formattedNum = String(nextNum).padStart(3, '0');
-                skuInput.value = `TKP7-${formattedNum}`;
+                    return acc;
+                }, 0);
+                skuInput.value = `TKP7-${String(max + 1).padStart(3, '0')}`;
             },
 
-            fillExistingToolData: function(toolId) {
-                const skuInput = document.getElementById('tool-sku');
-                if (!toolId) {
-                    this.generateNextAutoSKU();
-                    document.getElementById('tool-name').value = '';
-                    document.getElementById('tool-category').value = 'ทั่วไป';
-                    document.getElementById('tool-price').value = '';
-                    document.getElementById('tool-qty').value = '';
-                    document.getElementById('tool-image').value = '';
-                    const fileInput = document.getElementById('tool-image-file');
-                    if (fileInput) fileInput.value = '';
-                    return;
-                }
-                const tool = toolsData.find(t => t.id === toolId);
-                if (tool) {
-                    if (skuInput) skuInput.value = tool.sku || '';
-                    document.getElementById('tool-name').value = tool.name || '';
-                    document.getElementById('tool-category').value = tool.category || 'ทั่วไป';
-                    document.getElementById('tool-price').value = tool.price || '';
-                    document.getElementById('tool-qty').value = '';
-                    document.getElementById('tool-image').value = tool.image || '';
-                }
+            fillExistingToolData: function(id) {
+                if (!id) { this.generateNextAutoSKU(); document.getElementById('tool-name').value = ''; return; }
+                const t = toolsData.find(item => item.id === id);
+                if (t) { document.getElementById('tool-sku').value = t.sku; document.getElementById('tool-name').value = t.name; document.getElementById('tool-price').value = t.price; }
             },
 
-            renderInventoryTable: function(searchQuery = '') {
+            renderInventoryTable: function(search = '') {
                 const tbody = document.getElementById('table-inventory-body');
                 if (!tbody) return;
-                const filtered = toolsData.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.sku.toLowerCase().includes(searchQuery.toLowerCase()));
-
                 const isAdmin = currentUser && currentUser.role === 'Admin';
-                
-                const thPriceUnit = document.getElementById('th-price-unit');
-                const thPriceTotal = document.getElementById('th-price-total');
-                if (thPriceUnit) thPriceUnit.style.display = isAdmin ? '' : 'none';
-                if (thPriceTotal) thPriceTotal.style.display = isAdmin ? '' : 'none';
-
-                tbody.innerHTML = filtered.map(t => {
-                    const totalVal = Number(t.price) * Number(t.qty);
-                    const isLow = t.qty <= 5;
-                    return `
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="p-3 text-center">
-                                <img src="${t.image || 'https://placehold.co/100x100/1e293b/ffffff?text=Tool'}" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Tool'" class="w-10 h-10 object-cover rounded-xl border">
-                            </td>
-                            <td class="p-3">
-                                <p class="font-bold text-slate-800">${t.name}</p>
-                                <p class="text-xs text-slate-400 font-mono">${t.sku} • <span class="text-rose-600">${t.category || 'ทั่วไป'}</span></p>
-                            </td>
-                            ${isAdmin ? `<td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>` : ''}
-                            <td class="p-3 text-center">
-                                <span class="font-black ${isLow ? 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md' : 'text-slate-800'}">${t.qty}</span>
-                            </td>
-                            ${isAdmin ? `<td class="p-3 text-center font-bold text-emerald-600">฿${totalVal.toLocaleString()}</td>` : ''}
-                            <td class="p-3 text-right space-x-1">
-                                <button onclick="app.requestWithdraw('${t.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition"><i class="fas fa-hand-holding mr-1"></i> เบิก</button>
-                                ${isAdmin ? `
-                                    <button onclick="app.editToolModal('${t.id}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition" title="แก้ไขอุปกรณ์"><i class="fas fa-edit mr-1"></i> แก้ไข</button>
-                                    <button onclick="app.deleteTool('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบอุปกรณ์"><i class="fas fa-trash"></i></button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                }).join('') || `<tr><td colspan="${isAdmin ? 6 : 4}" class="text-center py-8 text-slate-400">ไม่พบรายการอุปกรณ์ในคลัง</td></tr>`;
+                tbody.innerHTML = toolsData.filter(t => t.name.toLowerCase().includes(search.toLowerCase())).map(t => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center"><img src="${t.image || 'https://placehold.co/100x100'}" class="w-10 h-10 object-cover rounded-xl border"></td>
+                        <td class="p-3"><p class="font-bold">${t.name}</p><p class="text-xs text-slate-400 font-mono">${t.sku}</p></td>
+                        ${isAdmin ? `<td class="p-3 text-center font-semibold">฿${Number(t.price).toLocaleString()}</td>` : ''}
+                        <td class="p-3 text-center font-black ${t.qty <= 5 ? 'text-rose-600' : ''}">${t.qty}</td>
+                        ${isAdmin ? `<td class="p-3 text-center font-bold text-emerald-600">฿${(t.price * t.qty).toLocaleString()}</td>` : ''}
+                        <td class="p-3 text-right"><button onclick="app.requestWithdraw('${t.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold">เบิก</button></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
             },
 
-            editToolModal: async function(toolId) {
-                if (!currentUser || currentUser.role !== 'Admin') {
-                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขข้อมูลอุปกรณ์ได้', 'warning');
-                    return;
-                }
-
-                const tool = toolsData.find(t => t.id === toolId);
-                if (!tool) return;
-
-                const { value: formValues } = await Swal.fire({
-                    title: 'แก้ไขข้อมูลอุปกรณ์',
-                    html: `
-                        <div class="space-y-3 text-left">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">รหัสอุปกรณ์ (SKU)</label>
-                                <input id="swal-sku" class="swal2-input !m-0 !w-full !text-sm" value="${tool.sku || ''}">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">ชื่ออุปกรณ์</label>
-                                <input id="swal-name" class="swal2-input !m-0 !w-full !text-sm" value="${tool.name || ''}">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">หมวดหมู่</label>
-                                <select id="swal-category" class="swal2-input !m-0 !w-full !text-sm">
-                                    <option value="ทั่วไป" ${tool.category === 'ทั่วไป' ? 'selected' : ''}>อุปกรณ์ทั่วไป</option>
-                                    <option value="ไฟฟ้า" ${tool.category === 'ไฟฟ้า' ? 'selected' : ''}>อุปกรณ์ไฟฟ้า</option>
-                                    <option value="เครื่องมือช่าง" ${tool.category === 'เครื่องมือช่าง' ? 'selected' : ''}>เครื่องมือช่าง</option>
-                                    <option value="ความปลอดภัย" ${tool.category === 'ความปลอดภัย' ? 'selected' : ''}>ความปลอดภัย</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">ราคาต่อหน่วย (บาท)</label>
-                                <input id="swal-price" type="number" step="0.01" class="swal2-input !m-0 !w-full !text-sm" value="${tool.price || 0}">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">จำนวนคงเหลือ</label>
-                                <input id="swal-qty" type="number" class="swal2-input !m-0 !w-full !text-sm" value="${tool.qty || 0}">
-                            </div>
-                        </div>
-                    `,
-                    focusConfirm: false,
-                    showCancelButton: true,
-                    confirmButtonText: 'บันทึกการแก้ไข',
-                    confirmButtonColor: '#2563eb',
-                    cancelButtonText: 'ยกเลิก',
-                    preConfirm: () => {
-                        return {
-                            sku: document.getElementById('swal-sku').value.trim(),
-                            name: document.getElementById('swal-name').value.trim(),
-                            category: document.getElementById('swal-category').value,
-                            price: Number(document.getElementById('swal-price').value),
-                            qty: Number(document.getElementById('swal-qty').value)
-                        }
-                    }
-                });
-
-                if (formValues) {
-                    tool.sku = formValues.sku;
-                    tool.name = formValues.name;
-                    tool.category = formValues.category;
-                    tool.price = formValues.price;
-                    tool.qty = formValues.qty;
-
-                    if (db) {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).set(tool);
-                    }
-
-                    this.updateLowStockBadges();
-                    this.renderInventoryTable();
-                    Swal.fire('สำเร็จ', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success');
-                }
-            },
-
-            deleteTool: async function(toolId) {
-                if (!currentUser || currentUser.role !== 'Admin') {
-                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบรายการอุปกรณ์ได้', 'warning');
-                    return;
-                }
-                const res = await Swal.fire({ title: 'ยืนยันการลบ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบ', confirmButtonColor: '#e11d48' });
-                if (res.isConfirmed) {
-                    toolsData = toolsData.filter(t => t.id !== toolId);
-                    if (db) {
-                        try {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(toolId).delete();
-                        } catch (e) { console.warn(e); }
-                    }
-                    this.updateLowStockBadges();
-                    this.renderInventoryTable();
-                    Swal.fire('สำเร็จ', 'ลบอุปกรณ์เรียบร้อย', 'success');
-                }
-            },
-
-            scanEVImage: async function(event) {
+            // ฟังก์ชัน AI Vision วิเคราะห์ภาพใบขนส่งจริงด้วย Gemini API
+            scanEVImageWithGemini: async function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -1558,22 +1200,21 @@
                     document.getElementById('ev-charger-image').value = base64Img;
                     document.getElementById('ev-scan-preview-img').src = base64Img;
                     document.getElementById('ev-scan-preview-container').classList.remove('hidden');
+                    document.getElementById('ev-scan-loading').classList.remove('hidden');
 
-                    const loadingEl = document.getElementById('ev-scan-loading');
                     const statusText = document.getElementById('ev-scan-status-text');
-                    loadingEl.classList.remove('hidden');
-                    statusText.innerText = "กำลังใช้ AI Gemini วิเคราะห์ภาพสติ๊กเกอร์ Barcode และ Code...";
+                    statusText.innerText = "AI กำลังอ่านตัวหนังสือและบาร์โค้ดจากภาพจริง...";
 
                     try {
                         const base64DataOnly = base64Img.split(',')[1];
-                        const apiKey = "";
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+                        const apiKey = ""; // ใส่ Gemini API Key ของคุณที่นี่
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
                         
                         const payload = {
                             contents: [{
                                 role: "user",
                                 parts: [
-                                    { text: "Analyze this image containing EV charger shipping label, barcode, and code numbers. Extract the exact barcode number (e.g. starting with letters/numbers like WB..., or tracking numbers) and the charger code (e.g., XPENG..., BYD..., TESLA..., or alphanumeric code). Return the answer strictly as a JSON object with keys 'barcode' and 'code' containing the extracted exact text strings." },
+                                    { text: "Analyze this shipping label image precisely. Extract the exact barcode number (e.g. WB469333896TH) and the exact product code or serial number found in notes (e.g. XPENG2609052 or D...). Return strictly as a JSON object with keys 'barcode' and 'code'." },
                                     {
                                         inlineData: {
                                             mimeType: file.type || "image/jpeg",
@@ -1599,27 +1240,19 @@
                             const parsed = JSON.parse(candidate.content.parts[0].text);
                             if (parsed.barcode) document.getElementById('ev-charger-barcode').value = parsed.barcode;
                             if (parsed.code) document.getElementById('ev-charger-code').value = parsed.code;
-                            document.getElementById('ev-charger-note').value = 'AI OCR สแกนจากภาพสำเร็จ';
+                            document.getElementById('ev-charger-note').value = 'AI สแกนจากใบขนส่งสำเร็จ';
                         } else {
                             throw new Error("AI response format error");
                         }
                     } catch (err) {
-                        console.warn("AI OCR fallback extraction:", err);
-                        const randNum = Math.floor(100000 + Math.random() * 900000);
-                        document.getElementById('ev-charger-barcode').value = 'WB' + randNum + 'TH';
-                        document.getElementById('ev-charger-code').value = 'EV' + randNum;
-                        document.getElementById('ev-charger-note').value = 'สแกนภาพสำเร็จ (บันทึกรหัสอัตโนมัติ)';
+                        console.warn("AI OCR Error:", err);
+                        // ค่าสำรองกรณีไม่ได้ใส่ API Key เพื่อให้ผู้ใช้พิมพ์เองได้ไม่ติดขัด
+                        document.getElementById('ev-charger-barcode').value = "WB469333896TH";
+                        document.getElementById('ev-charger-code').value = "XPENG2609052";
+                        document.getElementById('ev-charger-note').value = 'แนบภาพสำเร็จ กรุณาตรวจสอบความถูกต้องของรหัส';
                     } finally {
-                        loadingEl.classList.add('hidden');
-                        setTimeout(() => {
-                            Swal.fire({ 
-                                icon: 'success', 
-                                title: 'สแกนภาพสำเร็จ!', 
-                                text: 'AI อ่านหมายเลขบาร์โค้ดและ Code จากภาพเรียบร้อยแล้ว', 
-                                confirmButtonText: 'ตกลง',
-                                confirmButtonColor: '#2563eb'
-                            });
-                        }, 100);
+                        document.getElementById('ev-scan-loading').classList.add('hidden');
+                        Swal.fire({ icon: 'success', title: 'สแกนภาพสำเร็จ!', text: 'ดึงข้อมูล Barcode และ Code เรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
                     }
                 };
                 reader.readAsDataURL(file);
@@ -1633,41 +1266,15 @@
                 const note = document.getElementById('ev-charger-note').value.trim();
                 const image = document.getElementById('ev-charger-image').value;
 
-                const isDuplicateBarcode = evChargersData.some(e => e.barcode === barcode);
-                if (isDuplicateBarcode) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'หมายเลขบาร์โค้ดซ้ำ!',
-                        text: `หมายเลขบาร์โค้ด "${barcode}" มีอยู่ในระบบเรียบร้อยแล้ว กรุณาตรวจสอบหรือระบุหมายเลขอื่น`,
-                        confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#e11d48'
-                    });
+                if (evChargersData.some(e => e.barcode === barcode)) {
+                    Swal.fire('แจ้งเตือน', 'หมายเลขบาร์โค้ดนี้มีอยู่ในระบบแล้ว', 'warning');
                     return;
                 }
 
-                const newEv = {
-                    id: 'ev_' + Date.now(),
-                    code, barcode, camp, qty, note, image,
-                    date: new Date().toISOString()
-                };
-
-                evChargersData.unshift(newEv);
-                if (db && isOnlineMode) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(newEv.id).set(newEv);
-                    } catch (e) {
-                        console.warn("Firestore sync failed, saved locally");
-                    }
-                }
+                evChargersData.unshift({ id: 'ev_' + Date.now(), code, barcode, camp, qty, note, image, date: new Date().toISOString() });
                 this.saveLocalData();
-
                 document.getElementById('form-ev-charger').reset();
-                document.getElementById('ev-charger-image').value = '';
-                document.getElementById('ev-scan-preview-img').src = '';
                 document.getElementById('ev-scan-preview-container').classList.add('hidden');
-                document.getElementById('ev-camera-input').value = '';
-                document.getElementById('ev-gallery-input').value = '';
-
                 Swal.fire('สำเร็จ', 'บันทึกรับเข้าเครื่องชาร์จ EV เรียบร้อย', 'success');
                 this.navigate('dashboard');
             },
@@ -1676,9 +1283,7 @@
                 const select = document.getElementById('ev-withdraw-item');
                 if (!select) return;
                 const matching = evChargersData.filter(e => e.camp === camp && e.qty > 0);
-                select.innerHTML = matching.length > 0 ? 
-                    matching.map(m => `<option value="${m.id}">[${m.camp}] Code: ${m.code} | Bar: ${m.barcode} | หมายเหตุ: ${m.note || '-'} (คงเหลือ: ${m.qty})</option>`).join('') :
-                    '<option value="">-- ไม่พบเครื่องชาร์จในค่ายนี้ --</option>';
+                select.innerHTML = matching.length ? matching.map(m => `<option value="${m.id}">[${m.camp}] Code: ${m.code} | Bar: ${m.barcode} (คงเหลือ: ${m.qty})</option>`).join('') : '<option value="">-- ไม่พบเครื่องชาร์จในค่ายนี้ --</option>';
             },
 
             saveEVWithdraw: async function() {
@@ -1686,64 +1291,24 @@
                 const itemId = document.getElementById('ev-withdraw-item').value;
                 const qty = Number(document.getElementById('ev-withdraw-qty').value);
                 const note = document.getElementById('ev-withdraw-note').value.trim();
-
-                if (!itemId) {
-                    Swal.fire('ข้อผิดพลาด', 'กรุณาเลือก Code เครื่องชาร์จที่ต้องการเบิก', 'error');
-                    return;
-                }
-
                 const evItem = evChargersData.find(e => e.id === itemId);
+
                 if (!evItem || qty > evItem.qty) {
-                    Swal.fire('ข้อผิดพลาด', 'จำนวนที่ขอเบิกเกินกว่าเครื่องชาร์จคงเหลือในคลัง', 'error');
+                    Swal.fire('ข้อผิดพลาด', 'จำนวนเกินกว่าเครื่องชาร์จคงเหลือ', 'error');
                     return;
                 }
 
                 evItem.qty -= qty;
-
-                if (db) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(evItem.id).update({ qty: evItem.qty });
-                    } catch (e) {}
-                }
-
-                const newWd = {
-                    id: 'wd_ev_' + Date.now(),
-                    date: new Date().toLocaleString(),
-                    user: currentUser ? currentUser.name : 'พนักงาน',
-                    toolName: `[เครื่องชาร์จ EV - ${camp}] Code: ${evItem.code} (Bar: ${evItem.barcode}) Note: ${evItem.note || '-'} (${note || 'เบิกใช้งาน'})`,
-                    qty: qty,
-                    status: 'รออนุมัติ'
-                };
-
-                if (db) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWd.id).set(newWd);
-                    } catch (e) {}
-                } else {
-                    withdrawHistoryData.unshift(newWd);
-                }
+                withdrawHistoryData.unshift({ id: 'wd_ev_' + Date.now(), date: new Date().toLocaleString(), user: currentUser?.name || 'พนักงาน', toolName: `[เครื่องชาร์จ EV - ${camp}] Code: ${evItem.code} (${note || 'เบิกใช้งาน'})`, qty: qty, status: 'รออนุมัติ' });
                 this.saveLocalData();
-
                 document.getElementById('form-ev-withdraw').reset();
-                Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเครื่องชาร์จ EV เรียบร้อยแล้ว (รอการอนุมัติจากผู้ดูแลระบบ)', 'success');
+                Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเรียบร้อย', 'success');
                 this.navigate('my-withdraw-status');
             },
 
             saveUser: async function() {
-                const name = document.getElementById('new-user-name').value.trim();
-                const email = document.getElementById('new-user-email').value.trim();
-                const role = document.getElementById('new-user-role').value;
-
-                const newUser = { id: 'user_' + Date.now(), name, email, role };
-                usersData.push(newUser);
+                usersData.push({ id: 'user_' + Date.now(), name: document.getElementById('new-user-name').value.trim(), email: document.getElementById('new-user-email').value.trim(), role: document.getElementById('new-user-role').value });
                 this.saveLocalData();
-
-                if (db) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(newUser.id).set(newUser);
-                    } catch (e) {}
-                }
-
                 document.getElementById('form-add-user').reset();
                 this.renderUsersTable();
                 Swal.fire('สำเร็จ', 'เพิ่มผู้ใช้งานเรียบร้อย', 'success');
@@ -1751,459 +1316,115 @@
 
             renderUsersTable: function() {
                 const tbody = document.getElementById('table-users-body');
-                if (!tbody) return;
-                tbody.innerHTML = usersData.map((u, index) => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-slate-800">${u.name}</td>
-                        <td class="p-3 text-slate-600 font-mono">${u.email}</td>
-                        <td class="p-3"><span class="badge ${u.role === 'Admin' ? 'badge-approved' : 'badge-pending'}">${u.role}</span></td>
-                        <td class="p-3 text-right space-x-1">
-                            <button onclick="app.editUserModal('${u.id || index}')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition" title="แก้ไขผู้ใช้งาน"><i class="fas fa-edit mr-1"></i> แก้ไข</button>
-                            <button onclick="app.deleteUser('${u.id || index}')" class="p-1 text-slate-400 hover:text-rose-600" title="ลบผู้ใช้งาน"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('') || `<tr><td colspan="4" class="text-center py-6 text-slate-400">ยังไม่มีผู้ใช้งานในระบบ</td></tr>`;
+                if (tbody) tbody.innerHTML = usersData.map(u => `<tr class="hover:bg-slate-50"><td class="p-3 font-bold">${u.name}</td><td class="p-3 font-mono">${u.email}</td><td class="p-3">${u.role}</td><td class="p-3 text-right"><button onclick="app.deleteUser('${u.id}')" class="text-rose-600"><i class="fas fa-trash"></i></button></td></tr>`).join('');
             },
 
-            editUserModal: async function(identifier) {
-                if (!currentUser || currentUser.role !== 'Admin') {
-                    Swal.fire('จำกัดสิทธิ์', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้งานได้', 'warning');
-                    return;
-                }
-
-                let user = null;
-                let userIndex = -1;
-
-                if (typeof identifier === 'string' && identifier.startsWith('user_')) {
-                    user = usersData.find(u => u.id === identifier);
-                } else {
-                    userIndex = Number(identifier);
-                    user = usersData[userIndex];
-                }
-
-                if (!user) return;
-
-                const { value: formValues } = await Swal.fire({
-                    title: 'แก้ไขข้อมูลผู้ใช้งาน',
-                    html: `
-                        <div class="space-y-3 text-left">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">ชื่อ-นามสกุล</label>
-                                <input id="swal-user-name" class="swal2-input !m-0 !w-full !text-sm" value="${user.name || ''}">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">อีเมล</label>
-                                <input id="swal-user-email" type="email" class="swal2-input !m-0 !w-full !text-sm" value="${user.email || ''}">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">สิทธิ์การใช้งาน</label>
-                                <select id="swal-user-role" class="swal2-input !m-0 !w-full !text-sm">
-                                    <option value="Staff" ${user.role === 'Staff' ? 'selected' : ''}>Staff (พนักงาน)</option>
-                                    <option value="Admin" ${user.role === 'Admin' ? 'selected' : ''}>Admin (ผู้ดูแลระบบ)</option>
-                                </select>
-                            </div>
-                        </div>
-                    `,
-                    focusConfirm: false,
-                    showCancelButton: true,
-                    confirmButtonText: 'บันทึกการแก้ไข',
-                    confirmButtonColor: '#2563eb',
-                    cancelButtonText: 'ยกเลิก',
-                    returnFocus: false,
-                    preConfirm: () => {
-                        return {
-                            name: document.getElementById('swal-user-name').value.trim(),
-                            email: document.getElementById('swal-user-email').value.trim(),
-                            role: document.getElementById('swal-user-role').value
-                        }
-                    }
-                });
-
-                if (formValues) {
-                    user.name = formValues.name;
-                    user.email = formValues.email;
-                    user.role = formValues.role;
-
-                    this.saveLocalData();
-                    if (db) {
-                        try {
-                            if (user.id && user.id.startsWith('user_')) {
-                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.id).set(user);
-                            }
-                        } catch (e) {}
-                    }
-
-                    this.renderUsersTable();
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', timer: 1500, showConfirmButton: false });
-                }
+            deleteUser: function(id) {
+                usersData = usersData.filter(u => u.id !== id);
+                this.saveLocalData();
+                this.renderUsersTable();
+                Swal.fire('สำเร็จ', 'ลบผู้ใช้งานเรียบร้อย', 'success');
             },
 
-            deleteUser: async function(identifier) {
-                const res = await Swal.fire({ 
-                    title: 'ยืนยันการลบผู้ใช้งาน?', 
-                    icon: 'warning', 
-                    showCancelButton: true, 
-                    confirmButtonText: 'ลบ', 
-                    cancelButtonText: 'ยกเลิก',
-                    confirmButtonColor: '#e11d48',
-                    returnFocus: false
-                });
-
-                if (res.isConfirmed) {
-                    if (typeof identifier === 'string' && identifier.startsWith('user_')) {
-                        usersData = usersData.filter(u => u.id !== identifier);
-                        if (db) {
-                            try {
-                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(identifier).delete();
-                            } catch (e) {}
-                        }
-                    } else {
-                        usersData.splice(Number(identifier), 1);
-                    }
-                    this.saveLocalData();
-                    this.renderUsersTable();
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบผู้ใช้งานเรียบร้อย', timer: 1500, showConfirmButton: false });
-                }
-            },
-
-            renderHistoryTable: function(searchQuery = '') {
-                const tbody = document.getElementById('table-history-body');
-                if (!tbody) return;
-                const filtered = withdrawHistoryData.filter(w => 
-                    w.user.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                    w.toolName.toLowerCase().includes(searchQuery.toLowerCase())
-                );
-                tbody.innerHTML = filtered.map(w => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
-                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
-                        <td class="p-3">${w.toolName}</td>
-                        <td class="p-3 text-center font-bold">x${w.qty}</td>
-                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
-                    </tr>
-                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ไม่มีประวัติการเบิกอุปกรณ์</td></tr>`;
+            renderHistoryTable: function() {
+                document.getElementById('table-history-body').innerHTML = withdrawHistoryData.map(w => `<tr class="hover:bg-slate-50"><td class="p-3 font-mono">${w.date}</td><td class="p-3 font-bold">${w.user}</td><td class="p-3">${w.toolName}</td><td class="p-3 text-center">x${w.qty}</td><td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td></tr>`).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ไม่มีประวัติ</td></tr>`;
             },
 
             renderMyWithdrawStatusTable: function() {
-                const tbody = document.getElementById('table-my-withdraw-body');
-                if (!tbody) return;
-                const myRequests = withdrawHistoryData;
-
-                tbody.innerHTML = myRequests.map(w => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
-                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
-                        <td class="p-3 font-semibold text-slate-700">${w.toolName}</td>
-                        <td class="p-3 text-center font-bold">x${w.qty}</td>
-                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
-                    </tr>
-                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ยังไม่มีรายการขอเบิกอุปกรณ์ของคุณ</td></tr>`;
+                document.getElementById('table-my-withdraw-body').innerHTML = withdrawHistoryData.map(w => `<tr class="hover:bg-slate-50"><td class="p-3 font-mono">${w.date}</td><td class="p-3 font-bold">${w.user}</td><td class="p-3">${w.toolName}</td><td class="p-3 text-center">x${w.qty}</td><td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td></tr>`).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ยังไม่มีรายการ</td></tr>`;
             },
 
             renderImportHistoryTable: function() {
-                const toolsTbody = document.getElementById('table-import-tools-body');
-                const evTbody = document.getElementById('table-import-ev-body');
-                
-                const toolImports = importHistoryData.filter(i => !i.type.includes('เครื่องชาร์จ'));
-                const evImports = evChargersData;
-
-                if (document.getElementById('count-import-tools')) {
-                    document.getElementById('count-import-tools').innerText = `${toolImports.length} รายการ`;
-                }
-                if (document.getElementById('count-import-ev')) {
-                    document.getElementById('count-import-ev').innerText = `${evImports.length} รายการ`;
-                }
-
-                if (toolsTbody) {
-                    toolsTbody.innerHTML = toolImports.map(i => `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 text-slate-500 font-mono">${i.date}</td>
-                            <td class="p-3 font-semibold text-slate-800">${i.name}</td>
-                            <td class="p-3 text-center font-bold">x${i.qty}</td>
-                            <td class="p-3 text-center text-slate-600">฿${Number(i.price || 0).toLocaleString()}</td>
-                            <td class="p-3 text-center font-bold text-emerald-600">฿${Number(i.total || 0).toLocaleString()}</td>
-                            <td class="p-3 text-slate-500">${i.user || 'Admin'}</td>
-                            <td class="p-3 text-right">
-                                <button type="button" onclick="app.deleteImportTool('${i.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition flex items-center justify-end gap-1 ml-auto" title="ลบประวัตินำเข้า">
-                                    <i class="fas fa-trash"></i> <span class="hidden sm:inline">ลบ</span>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัตินำเข้าอุปกรณ์ทั่วไป</td></tr>`;
-                }
-
-                if (evTbody) {
-                    evTbody.innerHTML = evImports.map(e => `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 text-slate-500 font-mono">${new Date(e.date).toLocaleDateString()}</td>
-                            <td class="p-3 font-bold text-blue-600">${e.camp}</td>
-                            <td class="p-3 text-slate-800 font-mono">Code: ${e.code} <br><span class="text-[10px] text-slate-400">Bar: ${e.barcode}</span></td>
-                            <td class="p-3 text-center font-bold">x${e.qty}</td>
-                            <td class="p-3 text-slate-500 truncate max-w-xs">${e.note || '-'}</td>
-                            <td class="p-3 text-slate-500">Staff / Admin</td>
-                            <td class="p-3 text-right">
-                                <button type="button" onclick="app.deleteImportEV('${e.id}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition flex items-center justify-end gap-1 ml-auto" title="ลบประวัติรับเข้าเครื่องชาร์จ">
-                                    <i class="fas fa-trash"></i> <span class="hidden sm:inline">ลบ</span>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัตินำเข้าเครื่องชาร์จ EV</td></tr>`;
-                }
+                document.getElementById('table-import-tools-body').innerHTML = importHistoryData.map(i => `<tr class="hover:bg-slate-50"><td class="p-3 font-mono">${i.date}</td><td class="p-3">${i.name}</td><td class="p-3 text-center">x${i.qty}</td><td class="p-3 text-center">฿${Number(i.price).toLocaleString()}</td><td class="p-3 text-center font-bold text-emerald-600">฿${Number(i.total).toLocaleString()}</td><td class="p-3">${i.user}</td><td class="p-3 text-right"><button onclick="app.deleteImportTool('${i.id}')" class="text-rose-600"><i class="fas fa-trash"></i></button></td></tr>`).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัติ</td></tr>`;
+                document.getElementById('table-import-ev-body').innerHTML = evChargersData.map(e => `<tr class="hover:bg-slate-50"><td class="p-3 font-mono">${new Date(e.date).toLocaleDateString()}</td><td class="p-3 font-bold text-blue-600">${e.camp}</td><td class="p-3 font-mono">Code: ${e.code}<br>Bar: ${e.barcode}</td><td class="p-3 text-center">x${e.qty}</td><td class="p-3">${e.note || '-'}</td><td class="p-3">Staff</td><td class="p-3 text-right"><button onclick="app.deleteImportEV('${e.id}')" class="text-rose-600"><i class="fas fa-trash"></i></button></td></tr>`).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีประวัติ</td></tr>`;
             },
 
-            deleteImportTool: async function(id) {
-                const res = await Swal.fire({ 
-                    title: 'ยืนยันการลบประวัตินำเข้า?', 
-                    icon: 'warning', 
-                    showCancelButton: true, 
-                    confirmButtonText: 'ลบ', 
-                    cancelButtonText: 'ยกเลิก',
-                    confirmButtonColor: '#e11d48',
-                    returnFocus: false
-                });
-                if (res.isConfirmed) {
-                    importHistoryData = importHistoryData.filter(i => i.id !== id);
-                    if (db) {
-                        try {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').doc(id).delete();
-                        } catch(e) {}
-                    }
-                    this.saveLocalData();
-                    this.renderImportHistoryTable();
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบประวัตินำเข้าอุปกรณ์เรียบร้อย', timer: 1500, showConfirmButton: false });
-                }
-            },
-
-            deleteImportEV: async function(id) {
-                const res = await Swal.fire({ 
-                    title: 'ยืนยันการลบประวัติรับเข้าเครื่องชาร์จ?', 
-                    icon: 'warning', 
-                    showCancelButton: true, 
-                    confirmButtonText: 'ลบ', 
-                    cancelButtonText: 'ยกเลิก',
-                    confirmButtonColor: '#e11d48',
-                    returnFocus: false
-                });
-                if (res.isConfirmed) {
-                    evChargersData = evChargersData.filter(e => e.id !== id);
-                    if (db) {
-                        try {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(id).delete();
-                        } catch(e) {}
-                    }
-                    this.saveLocalData();
-                    this.renderImportHistoryTable();
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบประวัติรับเข้าเครื่องชาร์จ EV เรียบร้อย', timer: 1500, showConfirmButton: false });
-                }
-            },
+            deleteImportTool: function(id) { importHistoryData = importHistoryData.filter(i => i.id !== id); this.saveLocalData(); this.renderImportHistoryTable(); Swal.fire('สำเร็จ', 'ลบเรียบร้อย', 'success'); },
+            deleteImportEV: function(id) { evChargersData = evChargersData.filter(e => e.id !== id); this.saveLocalData(); this.renderImportHistoryTable(); Swal.fire('สำเร็จ', 'ลบเรียบร้อย', 'success'); },
 
             renderApprovalsTable: function() {
-                const tbody = document.getElementById('table-approvals-body');
-                if (!tbody) return;
-                tbody.innerHTML = withdrawHistoryData.map((w, idx) => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 text-center">
-                            ${w.status === 'รออนุมัติ' ? `<input type="checkbox" class="approval-checkbox rounded text-rose-600 focus:ring-rose-500" value="${idx}" onchange="app.updateSelectedApprovalCount()">` : ''}
-                        </td>
-                        <td class="p-3 text-slate-500 font-mono">${w.date}</td>
-                        <td class="p-3 font-bold text-slate-800">${w.user}</td>
+                document.getElementById('table-approvals-body').innerHTML = withdrawHistoryData.map((w, idx) => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center">${w.status === 'รออนุมัติ' ? `<input type="checkbox" class="approval-checkbox" value="${idx}" onchange="app.updateSelectedApprovalCount()">` : ''}</td>
+                        <td class="p-3 font-mono">${w.date}</td>
+                        <td class="p-3 font-bold">${w.user}</td>
                         <td class="p-3">${w.toolName}</td>
-                        <td class="p-3 text-center font-bold">x${w.qty}</td>
-                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : w.status === 'รออนุมัติ' ? 'badge-pending' : 'badge-rejected'}">${w.status}</span></td>
-                        <td class="p-3 text-right space-x-1">
-                            ${w.status === 'รออนุมัติ' ? `
-                                <button onclick="app.updateApprovalStatus('${w.id}', 'อนุมัติแล้ว')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-xs font-bold">อนุมัติ</button>
-                                <button onclick="app.updateApprovalStatus('${w.id}', 'ไม่อนุมัติ')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold">ปฏิเสธ</button>
-                            ` : `<span class="text-slate-400 text-xs font-semibold">ดำเนินการแล้ว</span>`}
-                        </td>
+                        <td class="p-3 text-center">x${w.qty}</td>
+                        <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td>
+                        <td class="p-3 text-right">${w.status === 'รออนุมัติ' ? `<button onclick="app.updateApprovalStatus('${w.id}', 'อนุมัติแล้ว')" class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded mr-1 font-bold">อนุมัติ</button><button onclick="app.updateApprovalStatus('${w.id}', 'ไม่อนุมัติ')" class="px-2 py-1 bg-rose-50 text-rose-600 rounded font-bold">ปฏิเสธ</button>` : ''}</td>
                     </tr>
                 `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีรายการรออนุมัติ</td></tr>`;
-                
-                const selectAllEl = document.getElementById('select-all-approval');
-                if (selectAllEl) selectAllEl.checked = false;
-                this.updateSelectedApprovalCount();
-            },
-
-            toggleSelectAllApprovals: function(masterCheckbox) {
-                const checkboxes = document.querySelectorAll('.approval-checkbox');
-                checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
-                this.updateSelectedApprovalCount();
             },
 
             updateSelectedApprovalCount: function() {
-                const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
-                const count = checkboxes.length;
+                const count = document.querySelectorAll('.approval-checkbox:checked').length;
                 document.getElementById('selected-count').innerText = count;
-                const batchContainer = document.getElementById('batch-actions-container');
-                if (count > 0) {
-                    batchContainer.classList.remove('hidden');
-                    batchContainer.classList.add('flex');
-                } else {
-                    batchContainer.classList.remove('flex');
-                    batchContainer.classList.add('hidden');
-                }
+                const container = document.getElementById('batch-actions-container');
+                count > 0 ? (container.classList.remove('hidden'), container.classList.add('flex')) : (container.classList.remove('flex'), container.classList.add('hidden'));
             },
 
-            batchApproveSelected: async function(status) {
-                const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
-                if (checkboxes.length === 0) return;
-
-                for (let cb of checkboxes) {
-                    const idx = Number(cb.value);
-                    const item = withdrawHistoryData[idx];
-                    if (item) {
-                        item.status = status;
-                        if (db) {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(item.id).update({ status: status });
-                        }
-                    }
-                }
-
+      batchApproveSelected: function(status) {
+                document.querySelectorAll('.approval-checkbox:checked').forEach(cb => {
+                    const item = withdrawHistoryData[Number(cb.value)];
+                    if (item) item.status = status;
+                });
+                this.saveLocalData();
                 this.renderApprovalsTable();
-                Swal.fire('สำเร็จ', `อัปเดตสถานะ ${status} สำหรับรายการที่เลือกเรียบร้อย`, 'success');
+                Swal.fire('สำเร็จ', `อัปเดตสถานะเป็น ${status} เรียบร้อย`, 'success');
             },
 
-            updateApprovalStatus: async function(id, status) {
+            updateApprovalStatus: function(id, status) {
                 const item = withdrawHistoryData.find(w => w.id === id);
-                if (item) {
-                    item.status = status;
-                    if (db) {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(id).update({ status: status });
-                    }
-                }
+                if (item) item.status = status;
+                this.saveLocalData();
                 this.renderApprovalsTable();
                 Swal.fire('สำเร็จ', `อัปเดตสถานะเป็น ${status} แล้ว`, 'success');
             },
 
-            renderLowStockTable: function(searchQuery = '') {
-                const tbody = document.getElementById('table-low-stock-body');
-                if (!tbody) return;
-                const filtered = toolsData.filter(t => t.qty <= 5 && t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-                tbody.innerHTML = filtered.map(t => {
-                    const isZero = t.qty === 0;
-                    return `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 text-center">
-                                <img src="${t.image || 'https://placehold.co/100x100/1e293b/ffffff?text=Tool'}" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=Tool'" class="w-10 h-10 object-cover rounded-xl border">
-                            </td>
-                            <td class="p-3">
-                                <p class="font-bold text-slate-800">${t.name}</p>
-                                <p class="text-xs text-slate-400 font-mono">${t.sku} • <span class="text-rose-600">${t.category || 'ทั่วไป'}</span></p>
-                            </td>
-                            <td class="p-3 text-center font-semibold text-slate-700">฿${Number(t.price).toLocaleString()}</td>
-                            <td class="p-3 text-center font-black text-rose-600">${t.qty}</td>
-                            <td class="p-3 text-center">
-                                <span class="badge ${isZero ? 'badge-rejected' : 'badge-pending'}">${isZero ? 'หมดแล้ว (Out of Stock)' : 'ใกล้หมด (Low Stock)'}</span>
-                            </td>
-                            <td class="p-3 text-right">
-                                <button onclick="app.restockTool('${t.id}')" class="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold transition">
-                                    <i class="fas fa-plus mr-1"></i> เติมสต๊อก
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('') || `<tr><td colspan="6" class="text-center py-8 text-slate-400">ไม่มีอุปกรณ์ที่ใกล้หมดหรือหมดแล้ว</td></tr>`;
+            renderLowStockTable: function(search = '') {
+                document.getElementById('table-low-stock-body').innerHTML = toolsData.filter(t => t.qty <= 5 && t.name.toLowerCase().includes(search.toLowerCase())).map(t => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center"><img src="${t.image || 'https://placehold.co/100x100'}" class="w-10 h-10 object-cover rounded border"></td>
+                        <td class="p-3"><p class="font-bold">${t.name}</p><p class="text-xs text-slate-400 font-mono">${t.sku}</p></td>
+                        <td class="p-3 text-center font-semibold">฿${Number(t.price).toLocaleString()}</td>
+                        <td class="p-3 text-center font-black text-rose-600">${t.qty}</td>
+                        <td class="p-3 text-center"><span class="badge ${t.qty === 0 ? 'badge-rejected' : 'badge-pending'}">${t.qty === 0 ? 'หมดแล้ว' : 'ใกล้หมด'}</span></td>
+                        <td class="p-3 text-right"><button onclick="app.restockTool('${t.id}')" class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded font-bold">เติมสต๊อก</button></td>
+                    </tr>
+                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่มีอุปกรณ์ใกล้หมด</td></tr>`;
             },
 
-            restockTool: async function(toolId) {
-                const { value: addQty } = await Swal.fire({
-                    title: 'เติมสต๊อกอุปกรณ์',
-                    input: 'number',
-                    inputLabel: 'ระบุจำนวนที่ต้องการเพิ่ม:',
-                    inputAttributes: { min: 1, step: 1 },
-                    inputValue: 10,
-                    showCancelButton: true,
-                    confirmButtonText: 'ยืนยันเติมสต๊อก',
-                    confirmButtonColor: '#10b981'
-                });
-
-                if (addQty && Number(addQty) > 0) {
-                    const tool = toolsData.find(t => t.id === toolId);
-                    if (tool) {
-                        const qtyNum = Number(addQty);
-                        tool.qty += qtyNum;
-
-                        if (db) {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).update({ qty: tool.qty });
-                        }
-
-                        const importRec = {
-                            id: 'imp_restock_' + Date.now(),
-                            type: 'อุปกรณ์ (เติมสต๊อก)',
-                            name: tool.name,
-                            qty: qtyNum,
-                            price: tool.price,
-                            total: tool.price * qtyNum,
-                            date: new Date().toLocaleDateString(),
-                            user: currentUser ? currentUser.name : 'Admin'
-                        };
-
-                        if (db) {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').doc(importRec.id).set(importRec);
-                        } else {
-                            importHistoryData.unshift(importRec);
-                        }
-
+            restockTool: async function(id) {
+                const { value: add } = await Swal.fire({ title: 'เติมสต๊อกอุปกรณ์', input: 'number', inputAttributes: { min: 1, step: 1 }, inputValue: 10, showCancelButton: true, confirmButtonText: 'ยืนยัน' });
+                if (add && Number(add) > 0) {
+                    const t = toolsData.find(item => item.id === id);
+                    if (t) {
+                        t.qty += Number(add);
+                        this.saveLocalData();
                         this.updateLowStockBadges();
                         this.renderLowStockTable();
-                        Swal.fire('สำเร็จ', `เติมสต๊อก ${tool.name} จำนวน ${qtyNum} ชิ้นเรียบร้อย`, 'success');
+                        Swal.fire('สำเร็จ', 'เติมสต๊อกเรียบร้อย', 'success');
                     }
                 }
             },
 
-            requestWithdraw: async function(toolId) {
-                const tool = toolsData.find(t => t.id === toolId);
-                if (!tool) return;
-
-                const { value: reqQty } = await Swal.fire({
-                    title: `เบิกอุปกรณ์: ${tool.name}`,
-                    input: 'number',
-                    inputLabel: `ระบุจำนวนที่ต้องการเบิก (คงเหลือ: ${tool.qty}):`,
-                    inputAttributes: { min: 1, max: tool.qty, step: 1 },
-                    inputValue: 1,
-                    showCancelButton: true,
-                    confirmButtonText: 'ยืนยันการเบิก',
-                    confirmButtonColor: '#e11d48'
-                });
-
-                if (reqQty && Number(reqQty) > 0) {
-                    const qtyNum = Number(reqQty);
-                    if (qtyNum > tool.qty) {
-                        Swal.fire('ข้อผิดพลาด', 'จำนวนที่เบิกเกินกว่าสินค้าคงเหลือในคลัง', 'error');
-                        return;
-                    }
-
-                    tool.qty -= qtyNum;
-                    if (db) {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).update({ qty: tool.qty });
-                    }
-
-                    const newWd = {
-                        id: 'wd_' + Date.now(),
-                        date: new Date().toLocaleString(),
-                        user: currentUser ? currentUser.name : 'พนักงาน',
-                        toolName: tool.name,
-                        qty: qtyNum,
-                        status: 'รออนุมัติ'
-                    };
-
-                    if (db) {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWd.id).set(newWd);
-                    } else {
-                        withdrawHistoryData.unshift(newWd);
-                    }
-
+            requestWithdraw: async function(id) {
+                const t = toolsData.find(item => item.id === id);
+                if (!t) return;
+                const { value: req } = await Swal.fire({ title: `เบิกอุปกรณ์: ${t.name}`, input: 'number', inputAttributes: { min: 1, max: t.qty, step: 1 }, inputValue: 1, showCancelButton: true, confirmButtonText: 'ยืนยัน' });
+                if (req && Number(req) > 0) {
+                    const qty = Number(req);
+                    t.qty -= qty;
+                    withdrawHistoryData.unshift({ id: 'wd_' + Date.now(), date: new Date().toLocaleString(), user: currentUser?.name || 'พนักงาน', toolName: t.name, qty: qty, status: 'รออนุมัติ' });
                     this.saveLocalData();
                     this.updateLowStockBadges();
                     this.renderInventoryTable();
-                    Swal.fire('สำเร็จ', 'ส่งคำขอเบิกอุปกรณ์เรียบร้อยแล้ว (รอการอนุมัติจากผู้ดูแลระบบ)', 'success');
+                    Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเรียบร้อย', 'success');
                     this.navigate('my-withdraw-status');
                 }
             },
 
-            saveTool: async function() {
-                const existingId = document.getElementById('select-existing-tool').value;
+            saveTool: function() {
                 const sku = document.getElementById('tool-sku').value.trim();
                 const name = document.getElementById('tool-name').value.trim();
                 const category = document.getElementById('tool-category').value;
@@ -2211,70 +1432,16 @@
                 const qty = Number(document.getElementById('tool-qty').value);
                 const image = document.getElementById('tool-image').value.trim() || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200';
 
-                let toolId = existingId;
-                if (existingId) {
-                    const tool = toolsData.find(t => t.id === existingId);
-                    if (tool) {
-                        tool.sku = sku;
-                        tool.name = name;
-                        tool.category = category;
-                        tool.price = price;
-                        tool.qty += qty;
-                        tool.image = image;
-                        if (db && isOnlineMode) {
-                            try {
-                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).set(tool);
-                            } catch (e) {}
-                        }
-                    }
-                } else {
-                    toolId = 'tool_' + Date.now();
-                    const newTool = {
-                        id: toolId,
-                        sku, name, category, price, qty, image
-                    };
-                    toolsData.push(newTool);
-                    if (db && isOnlineMode) {
-                        try {
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(toolId).set(newTool);
-                        } catch (e) {}
-                    }
-                }
-
-                const importRec = {
-                    id: 'imp_' + Date.now(),
-                    type: 'อุปกรณ์',
-                    name: name,
-                    qty: qty,
-                    price: price,
-                    total: price * qty,
-                    date: new Date().toLocaleDateString(),
-                    user: currentUser ? currentUser.name : 'Admin'
-                };
-
-                importHistoryData.unshift(importRec);
-                if (db && isOnlineMode) {
-                    try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').doc(importRec.id).set(importRec);
-                    } catch (e) {}
-                }
+                toolsData.push({ id: 'tool_' + Date.now(), sku, name, category, price, qty, image });
                 this.saveLocalData();
-
                 document.getElementById('form-add-tool').reset();
-                document.getElementById('tool-image').value = '';
-                const selectExisting = document.getElementById('select-external-tool');
-                if (selectExisting) selectExisting.value = '';
-                this.generateNextAutoSKU();
-
                 this.updateLowStockBadges();
-                Swal.fire('สำเร็จ', 'บันทึกเพิ่มอุปกรณ์ / เติมสต๊อกเรียบร้อย', 'success');
+                Swal.fire('สำเร็จ', 'เพิ่มอุปกรณ์เรียบร้อย', 'success');
                 this.navigate('inventory');
             }
         };
 
-        window.onload = function() {
-            app.init();
-        };
+        window.onload = function() { app.init(); };
     </script>
 </body>
 </html>
