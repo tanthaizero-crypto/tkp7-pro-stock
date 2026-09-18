@@ -24,6 +24,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Html5-Qrcode Scanner Library สำหรับอ่านบาร์โค้ดความละเอียดสูง -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -409,37 +412,34 @@
                 </div>
             </section>
 
-            <!-- EV Charger View (รับเข้าเครื่องชาร์จ + AI สแกนภาพจริงพร้อมบังคับรีเฟรชเมื่อเปลี่ยนรูป) -->
+            <!-- EV Charger View (รับเข้าเครื่องชาร์จ + สแกนบาร์โค้ดความแม่นยำสูง + OCR อ่านหลังคำว่า หมายเหตุ สำหรับ Code) -->
             <section id="view-ev-charger" class="page-transition hidden max-w-xl mx-auto">
                 <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
                     <div class="flex items-center gap-3">
-                        <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-charging-station text-xl"></i></div>
+                        <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-barcode text-xl"></i></div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800">รับเข้าเครื่องชาร์จ (EV) + AI สแกนภาพจริง</h3>
-                            <p class="text-xs text-slate-500">ถ่ายรูปหรือเลือกรูปภาพใบขนส่ง AI จะวิเคราะห์และอัปเดตข้อมูล Barcode และ Code ตามภาพจริงใหม่อัตโนมัติทันที</p>
+                            <h3 class="text-lg font-bold text-slate-800">รับเข้าเครื่องชาร์จ (EV) + สแกนบาร์โค้ด & อ่านภาพ</h3>
+                            <p class="text-xs text-slate-500">สแกนบาร์โค้ดความแม่นยำสูง และเลือกรูปเอกสารเพื่อให้ระบบอ่านข้อความ **หลังคำว่า "หมายเหตุ"** ลงในช่อง Code อัตโนมัติ</p>
                         </div>
                     </div>
 
-                    <!-- Hidden File Inputs (เพิ่ม .value = '' เพื่อให้กดเลือกรูปเดิมซ้ำหรือรูปใหม่ก็ทำงานทุกครั้ง) -->
-                    <input type="file" id="ev-camera-input" accept="image/*" capture="environment" class="hidden" onclick="this.value=null" onchange="app.scanEVImage(event)">
-                    <input type="file" id="ev-gallery-input" accept="image/*" class="hidden" onclick="this.value=null" onchange="app.scanEVImage(event)">
-
-                    <!-- Action Buttons for Camera / Gallery -->
+                    <!-- ปุ่มควบคุมการสแกนและเลือกรูป -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button type="button" onclick="document.getElementById('ev-camera-input').click()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
-                            <i class="fas fa-camera text-base"></i> ถ่ายรูปกล้องมือถือ (Camera)
+                        <button type="button" onclick="app.startBarcodeScanner()" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fas fa-camera text-base"></i> เปิดกล้องสแกนบาร์โค้ดสด
                         </button>
-                        <button type="button" onclick="document.getElementById('ev-gallery-input').click()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-200">
-                            <i class="fas fa-image text-base text-blue-600"></i> เลือกรูปจากอัลบั้ม (Gallery)
+                        <button type="button" onclick="document.getElementById('document-ocr-file-input').click()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-200">
+                            <i class="fas fa-file-image text-base text-blue-600"></i> เลือกรูปเอกสาร (อ่านหลัง "หมายเหตุ")
                         </button>
                     </div>
 
-                    <div id="ev-scan-preview-container" class="hidden relative rounded-2xl overflow-hidden border bg-slate-900 shadow-md">
-                        <img id="ev-scan-preview-img" src="" class="w-full max-h-48 object-contain opacity-90">
-                        <div id="ev-scan-loading" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white p-4">
-                            <div class="w-8 h-8 border-3 border-blue-400 border-t-transparent rounded-full animate-spin mb-2"></div>
-                            <p class="font-bold text-xs" id="ev-scan-status-text">AI กำลังวิเคราะห์ข้อความและบาร์โค้ดจากภาพจริง...</p>
-                        </div>
+                    <!-- Input ซ่อนสำหรับเลือกรูปเอกสารไปอ่านข้อความหลัง "หมายเหตุ" -->
+                    <input type="file" id="document-ocr-file-input" accept="image/*" class="hidden" onclick="this.value=null" onchange="app.extractCodeAfterNote(event)">
+
+                    <!-- พื้นที่แสดงกล้องสแกนบาร์โค้ดสด -->
+                    <div id="interactive-barcode-scanner-container" class="hidden relative rounded-2xl overflow-hidden border bg-slate-900 shadow-md p-2">
+                        <div id="reader" style="width: 100%; min-height: 250px;"></div>
+                        <button type="button" onclick="app.stopBarcodeScanner()" class="mt-2 w-full py-2 bg-rose-600 text-white rounded-xl text-xs font-bold">ปิดกล้องสแกน</button>
                     </div>
 
                     <form id="form-ev-charger" class="space-y-4">
@@ -462,12 +462,12 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Code (รหัสเครื่องชาร์จ) *</label>
-                                <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุ Code (เช่น XPENG2511214)">
+                                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Code (อ่านหลังคำว่า "หมายเหตุ") *</label>
+                                <input type="text" id="ev-charger-code" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="อ่านจากภาพหลังคำว่า 'หมายเหตุ'...">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">หมายเลขบาร์โค้ด (Barcode) *</label>
-                                <input type="text" id="ev-charger-barcode" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="ระบุเลขบาร์โค้ด (เช่น WB212792656TH)">
+                                <input type="text" id="ev-charger-barcode" required class="w-full px-4 py-3 border rounded-xl text-sm font-mono font-bold bg-slate-50 focus:bg-white transition" placeholder="สแกนหรือระบุเลขบาร์โค้ด...">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -795,6 +795,7 @@
         let isOnlineMode = false;
         let currentUser = null;
         let costChartInstance = null;
+        let html5QrCode = null;
 
         let toolsData = [];
         let evChargersData = [];
@@ -1188,8 +1189,51 @@
                 `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่พบข้อมูลอุปกรณ์</td></tr>`;
             },
 
-            // ฟังก์ชันสแกนรูปภาพจริง บังคับให้ AI วิเคราะห์ภาพใหม่ทุกครั้งที่เลือกรูป
-            scanEVImage: async function(event) {
+            // --- ฟังก์ชันโปรแกรมสแกนบาร์โค้ดความแม่นยำสูง ---
+            startBarcodeScanner: function() {
+                const container = document.getElementById('interactive-barcode-scanner-container');
+                container.classList.remove('hidden');
+
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
+
+                const config = { fps: 15, qrbox: { width: 280, height: 120 } };
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    (decodedText, decodedResult) => {
+                        document.getElementById('ev-charger-barcode').value = decodedText;
+                        document.getElementById('ev-charger-note').value = 'สแกนบาร์โค้ดความละเอียดสูงสำเร็จ';
+                        this.stopBarcodeScanner();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'สแกนบาร์โค้ดสำเร็จ!',
+                            text: `เลขบาร์โค้ด: ${decodedText}`,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    (errorMessage) => {}
+                ).catch((err) => {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องสแกนบาร์โค้ดได้', 'error');
+                });
+            },
+
+            stopBarcodeScanner: function() {
+                if (html5QrCode) {
+                    html5QrCode.stop().then(() => {
+                        document.getElementById('interactive-barcode-scanner-container').classList.add('hidden');
+                    }).catch(err => {
+                        document.getElementById('interactive-barcode-scanner-container').classList.add('hidden');
+                    });
+                } else {
+                    document.getElementById('interactive-barcode-scanner-container').classList.add('hidden');
+                }
+            },
+
+            // --- ฟังก์ชันอ่านข้อความจากภาพเอกสาร กำหนดให้อ่านข้อความ "หลังคำว่า หมายเหตุ" มาใส่ช่อง Code ---
+            extractCodeAfterNote: async function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -1197,23 +1241,25 @@
                 reader.onload = async (e) => {
                     const base64Img = e.target.result;
                     document.getElementById('ev-charger-image').value = base64Img;
-                    document.getElementById('ev-scan-preview-img').src = base64Img;
-                    document.getElementById('ev-scan-preview-container').classList.remove('hidden');
-                    document.getElementById('ev-scan-loading').classList.remove('hidden');
 
-                    const statusText = document.getElementById('ev-scan-status-text');
-                    statusText.innerText = "AI กำลังวิเคราะห์รูปภาพจริงและดึงตัวเลขจากใบขนส่ง...";
+                    Swal.fire({
+                        title: 'กำลังอ่านข้อความจากเอกสาร...',
+                        text: 'ระบบกำลังค้นหาข้อความหลังคำว่า "หมายเหตุ"',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
 
                     try {
                         const base64DataOnly = base64Img.split(',')[1];
-                        const apiKey = ""; // ใส่ Gemini API Key ของคุณที่นี่
+                        const apiKey = "AQ.Ab8RN6JmHcRmz_b7r5HxwK0CnTsxRxYaalf5tldEUHp9rFla6g";
                         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
                         
+                        // กำหนด Prompt ให้ชัดเจนตามเงื่อนไขที่ต้องการ: อ่านข้อความที่อยู่หลังคำว่า "หมายเหตุ" เท่านั้น
                         const payload = {
                             contents: [{
                                 role: "user",
                                 parts: [
-                                    { text: "Analyze this shipping label or barcode image precisely. Extract the exact barcode number (e.g. WB469333896TH) and the exact product code (e.g. XPENG2609052 or D2026042004381517BYD). Return strictly as a JSON object with keys 'barcode' and 'code'." },
+                                    { text: "Analyze this document or image. Find the Thai word 'หมายเหตุ' (Note / Remarks) and extract strictly the exact code, serial number, or text that appears directly after or following the word 'หมายเหตุ'. Return strictly as a JSON object with a single key 'code'." },
                                     {
                                         inlineData: {
                                             mimeType: file.type || "image/jpeg",
@@ -1237,31 +1283,28 @@
                         const candidate = result.candidates?.[0];
                         if (candidate && candidate.content?.parts?.[0]?.text) {
                             const parsed = JSON.parse(candidate.content.parts[0].text);
-                            if (parsed.barcode) document.getElementById('ev-charger-barcode').value = parsed.barcode;
-                            if (parsed.code) document.getElementById('ev-charger-code').value = parsed.code;
-                            document.getElementById('ev-charger-note').value = 'AI สแกนจากภาพใบขนส่งจริงสำเร็จ';
+                            if (parsed.code) {
+                                document.getElementById('ev-charger-code').value = parsed.code;
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'อ่านข้อความสำเร็จ!',
+                                    text: `ดึง Code หลังคำว่า หมายเหตุ ได้คือ: ${parsed.code}`,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                throw new Error("Not found code after note");
+                            }
                         } else {
-                            throw new Error("AI response format error");
+                            throw new Error("OCR response error");
                         }
                     } catch (err) {
-                        console.warn("AI Vision Fallback OCR:", err);
-                        // ระบบอ่านข้อความสำรองจากชื่อไฟล์หรือกำหนดค่าแบบไดนามิกตามภาพที่อัปโหลดจริง
-                        document.getElementById('ev-charger-barcode').value = "WB" + Math.floor(100000000 + Math.random() * 900000000) + "TH";
-                        document.getElementById('ev-charger-code').value = "XPENG" + Math.floor(1000000 + Math.random() * 9000000);
-                        document.getElementById('ev-charger-note').value = 'แนบรูปภาพสำเร็จ กรุณาตรวจสอบและแก้ไขรหัสตามต้องการ';
-                    } finally {
-                        document.getElementById('ev-scan-loading').classList.add('hidden');
-                        Swal.fire({ 
-                            icon: 'success', 
-                            title: 'สแกนภาพสำเร็จ!', 
-                            text: 'อัปเดตข้อมูล Barcode และ Code ตามภาพจริงเรียบร้อย', 
-                            timer: 1500, 
-                            showConfirmButton: false 
-                        });
+                        Swal.fire('แจ้งเตือน', 'ไม่พบข้อความหลังคำว่า "หมายเหตุ" ในเอกสารนี้ กรุณากรอก Code ด้วยตนเอง', 'warning');
                     }
                 };
                 reader.readAsDataURL(file);
             },
+            // ---------------------------------------------------------------------------------
 
             saveEVCharger: async function() {
                 const code = document.getElementById('ev-charger-code').value.trim();
@@ -1279,7 +1322,6 @@
                 evChargersData.unshift({ id: 'ev_' + Date.now(), code, barcode, camp, qty, note, image, date: new Date().toISOString() });
                 this.saveLocalData();
                 document.getElementById('form-ev-charger').reset();
-                document.getElementById('ev-scan-preview-container').classList.add('hidden');
                 Swal.fire('สำเร็จ', 'บันทึกรับเข้าเครื่องชาร์จ EV เรียบร้อย', 'success');
                 this.navigate('dashboard');
             },
