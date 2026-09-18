@@ -127,7 +127,6 @@
             <button onclick="app.navigate('ev-charger')" data-target="ev-charger" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition">
                 <i class="fas fa-charging-station w-5 text-center"></i> รับเข้าเครื่องชาร์จ
             </button>
-            <!-- เมนู ขอเบิกเครื่องชาร์จ ถูกนำออกตามคำขอ -->
             <button onclick="app.navigate('history')" data-target="history" class="nav-btn admin-only-nav w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition">
                 <i class="fas fa-file-invoice w-5 text-center"></i> ประวัติการเบิกทั้งหมด
             </button>
@@ -1154,21 +1153,21 @@
 
                 if (formValues) {
                     evItem.qty -= formValues.qty;
-                    withdrawHistoryData.unshift({ 
+                    const newWithdraw = { 
                         id: 'wd_ev_' + Date.now(), 
                         date: new Date().toLocaleString(), 
                         user: currentUser?.name || 'พนักงาน', 
                         toolName: `[เครื่องชาร์จ EV - ${evItem.camp}] Code: ${evItem.code} (${formValues.note || 'เบิกใช้งาน'})`, 
                         qty: formValues.qty, 
                         status: 'รออนุมัติ' 
-                    });
+                    };
+                    withdrawHistoryData.unshift(newWithdraw);
 
                     this.saveLocalData();
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(evItem.id).update({ qty: evItem.qty });
-                            const newWd = withdrawHistoryData[0];
-                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWd.id).set(newWd);
+                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
                         } catch (e) {}
                     }
 
@@ -1527,20 +1526,36 @@
                 count > 0 ? (container.classList.remove('hidden'), container.classList.add('flex')) : (container.classList.remove('flex'), container.classList.add('hidden'));
             },
 
-            batchApproveSelected: function(status) {
-                document.querySelectorAll('.approval-checkbox:checked').forEach(cb => {
-                    const item = withdrawHistoryData[Number(cb.value)];
-                    if (item) item.status = status;
-                });
+            batchApproveSelected: async function(status) {
+                const checkboxes = document.querySelectorAll('.approval-checkbox:checked');
+                for (const cb of checkboxes) {
+                    const index = Number(cb.value);
+                    const item = withdrawHistoryData[index];
+                    if (item) {
+                        item.status = status;
+                        if (isOnlineMode && db) {
+                            try {
+                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(item.id).update({ status: status });
+                            } catch (e) {}
+                        }
+                    }
+                }
                 this.saveLocalData();
                 this.renderApprovalsTable();
                 Swal.fire('สำเร็จ', `อัปเดตสถานะเป็น ${status} เรียบร้อย`, 'success');
             },
 
-            updateApprovalStatus: function(id, status) {
+            updateApprovalStatus: async function(id, status) {
                 const item = withdrawHistoryData.find(w => w.id === id);
-                if (item) item.status = status;
-                this.saveLocalData();
+                if (item) {
+                    item.status = status;
+                    this.saveLocalData();
+                    if (isOnlineMode && db) {
+                        try {
+                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(id).update({ status: status });
+                        } catch (e) {}
+                    }
+                }
                 this.renderApprovalsTable();
                 Swal.fire('สำเร็จ', `อัปเดตสถานะเป็น ${status} แล้ว`, 'success');
             },
@@ -1579,10 +1594,18 @@
                 if (req && Number(req) > 0) {
                     const qty = Number(req);
                     t.qty -= qty;
-                    withdrawHistoryData.unshift({ id: 'wd_' + Date.now(), date: new Date().toLocaleString(), user: currentUser?.name || 'พนักงาน', toolName: t.name, qty: qty, status: 'รออนุมัติ' });
+                    const newWithdraw = { id: 'wd_' + Date.now(), date: new Date().toLocaleString(), user: currentUser?.name || 'พนักงาน', toolName: t.name, qty: qty, status: 'รออนุมัติ' };
+                    withdrawHistoryData.unshift(newWithdraw);
                     this.saveLocalData();
                     this.updateLowStockBadges();
                     this.renderInventoryTable();
+
+                    if (isOnlineMode && db) {
+                        try {
+                            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
+                        } catch(e){}
+                    }
+
                     Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเรียบร้อย', 'success');
                     this.navigate('my-withdraw-status');
                 }
