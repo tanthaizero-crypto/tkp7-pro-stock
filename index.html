@@ -771,11 +771,16 @@
                         }
                         db = firebase.firestore();
                         try {
-                            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {});
-                        } catch (e) {}
+                            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+                                console.warn("Persistence error:", err.code);
+                            });
+                        } catch (e) {
+                            console.warn("Persistence exception:", e);
+                        }
                         isOnlineMode = true;
                     }
                 } catch (e) {
+                    console.error("Firebase init failed:", e);
                     isOnlineMode = false;
                 }
 
@@ -822,7 +827,9 @@
                     try {
                         this.initRealtimeListeners();
                         return;
-                    } catch (err) {}
+                    } catch (err) {
+                        console.error("Failed to start listeners:", err);
+                    }
                 }
                 this.loadLocalData();
             },
@@ -942,28 +949,32 @@
                         }
                         this.updateLowStockBadges();
                         this.renderDashboard();
-                    });
+                    }, err => console.error("Firestore Tools Listener Error:", err));
+
                     db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').onSnapshot((snapshot) => {
                         if (!snapshot.empty) {
                             evChargersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             this.saveLocalData();
                         }
                         this.renderDashboard();
-                    });
+                    }, err => console.error("Firestore EV Listener Error:", err));
+
                     db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').onSnapshot((snapshot) => {
                         if (!snapshot.empty) {
                             withdrawHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             this.saveLocalData();
                         }
                         this.renderDashboard();
-                    });
+                    }, err => console.error("Firestore Withdrawals Listener Error:", err));
+
                     db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').onSnapshot((snapshot) => {
                         if (!snapshot.empty) {
                             importHistoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             this.saveLocalData();
                         }
                         this.renderDashboard();
-                    });
+                    }, err => console.error("Firestore Imports Listener Error:", err));
+
                     db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').onSnapshot((snapshot) => {
                         if (!snapshot.empty) {
                             usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -971,8 +982,11 @@
                         }
                         if (usersData.length === 0) usersData = [{ id: 'admin_default', name: 'Super Admin', email: 'tanthaizero@gmail.com', role: 'Admin' }];
                         if (document.getElementById('table-users-body')) this.renderUsersTable();
-                    });
-                } catch (e) { this.loadLocalData(); }
+                    }, err => console.error("Firestore Users Listener Error:", err));
+                } catch (e) {
+                    console.error("Realtime Listeners setup exception:", e);
+                    this.loadLocalData();
+                }
             },
 
             updateLowStockBadges: function() {
@@ -1195,7 +1209,10 @@
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(evItem.id).update({ qty: evItem.qty });
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error("Firestore Withdraw EV Exception:", e);
+                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + e.message, 'warning');
+                        }
                     }
 
                     this.renderEVInventoryTable();
@@ -1272,7 +1289,9 @@
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(e.id).set(e);
-                        } catch(err) {}
+                        } catch(err) {
+                            console.error("Firestore Edit EV Exception:", err);
+                        }
                     }
 
                     this.renderEVInventoryTable();
@@ -1496,7 +1515,10 @@
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
-                        } catch(e){}
+                        } catch(e){
+                            console.error("Firestore Request Withdraw Error:", e);
+                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + e.message, 'warning');
+                        }
                     }
 
                     Swal.fire('สำเร็จ', 'ส่งคำขอเบิกเรียบร้อย', 'success');
@@ -1549,7 +1571,9 @@
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(t.id).set(t);
-                        } catch(e) {}
+                        } catch(e) {
+                            console.error("Firestore Edit Tool Error:", e);
+                        }
                     }
 
                     this.renderInventoryTable();
@@ -1577,7 +1601,9 @@
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(id).delete();
-                        } catch(e) {}
+                        } catch(e) {
+                            console.error("Firestore Delete Tool Error:", e);
+                        }
                     }
 
                     this.renderInventoryTable();
@@ -1612,6 +1638,7 @@
                     },
                     (errorMessage) => {}
                 ).catch((err) => {
+                    console.error("Camera Error:", err);
                     Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องสแกนบาร์โค้ดได้', 'error');
                 });
             },
@@ -1621,6 +1648,7 @@
                     html5QrCode.stop().then(() => {
                         document.getElementById('interactive-barcode-scanner-container').classList.add('hidden');
                     }).catch(err => {
+                        console.error("Stop scanner error:", err);
                         document.getElementById('interactive-barcode-scanner-container').classList.add('hidden');
                     });
                 } else {
@@ -1693,6 +1721,7 @@
                             throw new Error("OCR response error");
                         }
                     } catch (err) {
+                        console.error("OCR Exception:", err);
                         Swal.fire('แจ้งเตือน', 'ไม่พบข้อความหลังคำว่า "หมายเหตุ" ในเอกสารนี้ กรุณากรอก Code ด้วยตนเอง', 'warning');
                     }
                 };
@@ -1730,7 +1759,8 @@
                     try {
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(newEVItem.id).set(newEVItem);
                     } catch (err) {
-                        console.error("Firebase sync error:", err);
+                        console.error("Firebase save EV error:", err);
+                        Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + err.message, 'warning');
                     }
                 }
 
@@ -1745,7 +1775,11 @@
                 this.saveLocalData();
 
                 if (isOnlineMode && db) {
-                    try { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(newUser.id).set(newUser); } catch(e){}
+                    try { 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(newUser.id).set(newUser); 
+                    } catch(e){
+                        console.error("Save User Error:", e);
+                    }
                 }
 
                 document.getElementById('form-add-user').reset();
@@ -1762,7 +1796,11 @@
                 usersData = usersData.filter(u => u.id !== id);
                 this.saveLocalData();
                 if (isOnlineMode && db) {
-                    try { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(id).delete(); } catch(e){}
+                    try { 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(id).delete(); 
+                    } catch(e){
+                        console.error("Delete User Error:", e);
+                    }
                 }
                 this.renderUsersTable();
                 Swal.fire('สำเร็จ', 'ลบผู้ใช้งานเรียบร้อย', 'success');
@@ -1806,7 +1844,13 @@
             deleteImportTool: async function(id) { 
                 importHistoryData = importHistoryData.filter(i => i.id !== id); 
                 this.saveLocalData(); 
-                if(isOnlineMode && db) { try{ await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').doc(id).delete(); }catch(e){} }
+                if(isOnlineMode && db) { 
+                    try{ 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('imports').doc(id).delete(); 
+                    }catch(e){
+                        console.error("Delete Import Tool Error:", e);
+                    } 
+                }
                 this.renderImportHistoryTable(); 
                 Swal.fire('สำเร็จ', 'ลบเรียบร้อย', 'success'); 
             },
@@ -1814,7 +1858,13 @@
             deleteImportEV: async function(id) { 
                 evChargersData = evChargersData.filter(e => e.id !== id); 
                 this.saveLocalData(); 
-                if(isOnlineMode && db) { try{ await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(id).delete(); }catch(e){} }
+                if(isOnlineMode && db) { 
+                    try{ 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(id).delete(); 
+                    }catch(e){
+                        console.error("Delete Import EV Error:", e);
+                    } 
+                }
                 this.renderImportHistoryTable(); 
                 Swal.fire('สำเร็จ', 'ลบเรียบร้อย', 'success'); 
             },
@@ -1856,7 +1906,9 @@
                         if (isOnlineMode && db) {
                             try {
                                 await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(item.id).update({ status: status });
-                            } catch (e) {}
+                            } catch (e) {
+                                console.error("Batch Approve Error:", e);
+                            }
                         }
                     }
                 }
@@ -1878,7 +1930,9 @@
                     if (isOnlineMode && db) {
                         try {
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(id).update({ status: status });
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error("Update Approval Status Error:", e);
+                        }
                     }
                 }
                 this.renderApprovalsTable();
@@ -1893,7 +1947,7 @@
                     if (ev) {
                         ev.qty += Number(item.qty);
                         if (isOnlineMode && db) {
-                            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(ev.id).update({ qty: ev.qty }).catch(()=>{});
+                            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(ev.id).update({ qty: ev.qty }).catch(e => console.error("Return EV Stock Error:", e));
                         }
                     }
                 } else {
@@ -1901,7 +1955,7 @@
                     if (tool) {
                         tool.qty += Number(item.qty);
                         if (isOnlineMode && db) {
-                            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).update({ qty: tool.qty }).catch(()=>{});
+                            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(tool.id).update({ qty: tool.qty }).catch(e => console.error("Return Tool Stock Error:", e));
                         }
                     }
                 }
@@ -1930,6 +1984,15 @@
                         this.saveLocalData();
                         this.updateLowStockBadges();
                         this.renderLowStockTable();
+                        
+                        if (isOnlineMode && db) {
+                            try {
+                                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(t.id).update({ qty: t.qty });
+                            } catch(e) {
+                                console.error("Restock Tool Error:", e);
+                            }
+                        }
+                        
                         Swal.fire('สำเร็จ', 'เติมสต๊อกเรียบร้อย', 'success');
                     }
                 }
@@ -1949,11 +2012,16 @@
                 toolsData.push(newTool);
                 this.saveLocalData();
 
+                let syncErrorMsg = null;
                 if (isOnlineMode && db) {
-                    try { await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(newTool.id).set(newTool); } catch(e){}
+                    try { 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tools').doc(newTool.id).set(newTool); 
+                    } catch(e){
+                        console.error("Save Tool Firestore Error:", e);
+                        syncErrorMsg = e.message;
+                    }
                 }
 
-                // เคลียร์ฟอร์มและรีเซ็ตค่าทั้งหมดหลังบันทึกสำเร็จ
                 document.getElementById('form-add-tool').reset();
                 document.getElementById('tool-image').value = '';
                 const preview = document.getElementById('tool-image-preview');
@@ -1962,16 +2030,27 @@
 
                 this.updateLowStockBadges();
                 
-                // แจ้งเตือนบันทึกสำเร็จชัดเจนบนมือถือ
-                Swal.fire({
-                    icon: 'success',
-                    title: 'บันทึกสำเร็จ!',
-                    text: 'เพิ่มอุปกรณ์/เติมสต๊อกเรียบร้อยแล้ว',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: '#e11d48'
-                }).then(() => {
-                    this.navigate('inventory');
-                });
+                if (syncErrorMsg) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'บันทึกในเครื่องแล้ว',
+                        text: 'แต่ไม่สามารถส่งไปฐานข้อมูลกลางได้: ' + syncErrorMsg,
+                        confirmButtonText: 'รับทราบ',
+                        confirmButtonColor: '#e11d48'
+                    }).then(() => {
+                        this.navigate('inventory');
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'บันทึกสำเร็จ!',
+                        text: 'เพิ่มอุปกรณ์/เติมสต๊อกเรียบร้อยแล้ว',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#e11d48'
+                    }).then(() => {
+                        this.navigate('inventory');
+                    });
+                }
             }
         };
 
