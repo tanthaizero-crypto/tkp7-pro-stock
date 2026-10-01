@@ -501,7 +501,6 @@
                                     <th class="p-3">วันที่ / เวลา</th>
                                     <th class="p-3">ผู้เบิก</th>
                                     <th class="p-3">รายการอุปกรณ์</th>
-                                    <th class="p-3 text-center">รูปหลักฐาน</th>
                                     <th class="p-3 text-center">จำนวน</th>
                                     <th class="p-3 text-center">สถานะ</th>
                                 </tr>
@@ -651,7 +650,6 @@
                                     <th class="p-3">วันที่ขอเบิก</th>
                                     <th class="p-3">ผู้เบิก</th>
                                     <th class="p-3">รายการ</th>
-                                    <th class="p-3 text-center">รูปหลักฐาน</th>
                                     <th class="p-3 text-center">จำนวน</th>
                                     <th class="p-3 text-center">สถานะ</th>
                                     <th class="p-3 text-right">จัดการ</th>
@@ -677,7 +675,6 @@
                                     <th class="p-3">วันที่ขอเบิก</th>
                                     <th class="p-3">ผู้เบิก</th>
                                     <th class="p-3">รายการอุปกรณ์</th>
-                                    <th class="p-3 text-center">รูปหลักฐาน</th>
                                     <th class="p-3 text-center">จำนวน</th>
                                     <th class="p-3 text-center">สถานะการอนุมัติ</th>
                                 </tr>
@@ -861,34 +858,9 @@
 
             saveLocalData: function() {
                 try {
-                    // ตัดรูปภาพ Base64 ขนาดใหญ่ออกก่อนเซฟลง localStorage เพื่อป้องกัน QuotaExceededError
-                    const cleanWd = withdrawHistoryData.map(item => {
-                        const copy = { ...item };
-                        if (copy.image && copy.image.length > 5000) {
-                            delete copy.image;
-                        }
-                        return copy;
-                    });
-
-                    const cleanEv = evChargersData.map(item => {
-                        const copy = { ...item };
-                        if (copy.image && copy.image.length > 5000) {
-                            delete copy.image;
-                        }
-                        return copy;
-                    });
-
-                    const cleanTools = toolsData.map(item => {
-                        const copy = { ...item };
-                        if (copy.image && copy.image.length > 5000) {
-                            delete copy.image;
-                        }
-                        return copy;
-                    });
-
-                    localStorage.setItem('tkp7_tools', JSON.stringify(cleanTools));
-                    localStorage.setItem('tkp7_ev', JSON.stringify(cleanEv));
-                    localStorage.setItem('tkp7_wd', JSON.stringify(cleanWd));
+                    localStorage.setItem('tkp7_tools', JSON.stringify(toolsData));
+                    localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
+                    localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
                     localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
                     localStorage.setItem('tkp7_users', JSON.stringify(usersData));
                 } catch (e) {
@@ -1187,12 +1159,6 @@
                                 <label class="block text-xs font-bold text-slate-600 mb-1">วัตถุประสงค์ / หมายเหตุการเบิก</label>
                                 <textarea id="swal-wd-note" class="w-full px-3 py-2 border rounded-xl text-xs" rows="2" placeholder="ระบุโครงการ หรือสถานที่ติดตั้ง..."></textarea>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">ถ่ายรูปหลักฐานการเบิก (มี Time Stamp) <span class="text-rose-600">*บังคับใส่รูป</span></label>
-                                <input id="swal-wd-img-file" type="file" accept="image/*" capture="environment" class="w-full px-3 py-2 border rounded-xl text-xs bg-slate-50" onchange="app.processTimestampImage(event, 'swal-preview-img-container', 'swal-wd-img-base64')">
-                                <input type="hidden" id="swal-wd-img-base64">
-                                <div id="swal-preview-img-container" class="mt-2 text-center"></div>
-                            </div>
                         </div>
                     `,
                     focusConfirm: false,
@@ -1201,19 +1167,13 @@
                     cancelButtonText: 'ยกเลิก',
                     preConfirm: () => {
                         const qty = Number(document.getElementById('swal-wd-qty').value);
-                        const imgBase64 = document.getElementById('swal-wd-img-base64').value;
                         if (qty <= 0 || qty > evItem.qty) {
                             Swal.showValidationMessage(`กรุณาระบุจำนวนระหว่าง 1 ถึง ${evItem.qty}`);
                             return false;
                         }
-                        if (!imgBase64) {
-                            Swal.showValidationMessage('กรุณาถ่ายรูปหลักฐานการเบิก (บังคับ)');
-                            return false;
-                        }
                         return {
                             qty: qty,
-                            note: document.getElementById('swal-wd-note').value.trim(),
-                            image: imgBase64
+                            note: document.getElementById('swal-wd-note').value.trim()
                         }
                     }
                 });
@@ -1228,7 +1188,6 @@
                         toolType: 'ev',
                         toolName: `[เครื่องชาร์จ EV - ${evItem.camp}] Code: ${evItem.code} (${formValues.note || 'เบิกใช้งาน'})`, 
                         qty: formValues.qty, 
-                        image: formValues.image,
                         status: 'รออนุมัติ' 
                     };
                     withdrawHistoryData.unshift(newWithdraw);
@@ -1421,58 +1380,6 @@
                 reader.readAsDataURL(file);
             },
 
-            processTimestampImage: function(event, containerId, hiddenInputId) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        
-                        let width = img.width;
-                        let height = img.height;
-                        const maxDim = 1000;
-                        if (width > maxDim || height > maxDim) {
-                            if (width > height) {
-                                height = Math.round((height * maxDim) / width);
-                                width = maxDim;
-                            } else {
-                                width = Math.round((width * maxDim) / height);
-                                height = maxDim;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const now = new Date();
-                        const timeStr = 'Time: ' + now.toLocaleString('th-TH');
-                        const userStr = 'User: ' + (currentUser?.name || 'Staff');
-                        
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-                        ctx.fillRect(10, height - 60, width - 20, 50);
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 16px Prompt, sans-serif';
-                        ctx.fillText(timeStr, 20, height - 35);
-                        ctx.fillText(userStr, 20, height - 15);
-
-                        const watermarkedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                        document.getElementById(hiddenInputId).value = watermarkedDataUrl;
-                        document.getElementById(containerId).innerHTML = `
-                            <img src="${watermarkedDataUrl}" class="w-24 h-24 object-cover rounded-xl border mx-auto cursor-pointer shadow" onclick="app.showFullImage('${watermarkedDataUrl}', 'ภาพหลักฐานการเบิก')">
-                            <p class="text-[10px] text-emerald-600 font-bold mt-1"><i class="fas fa-check-circle"></i> ฝัง Timestamp เรียบร้อย</p>
-                        `;
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            },
-
             showFullImage: function(url, title = 'รูปภาพ') {
                 Swal.fire({
                     title: `<span class="text-sm font-bold">${title}</span>`,
@@ -1496,12 +1403,6 @@
                                 <label class="block text-xs font-bold text-slate-600 mb-1">จำนวน (คงเหลือ ${t.qty} ชิ้น)</label>
                                 <input id="swal-wd-qty" type="number" min="1" max="${t.qty}" value="1" class="w-full px-3 py-2 border rounded-xl text-sm font-bold">
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">ถ่ายรูปหลักฐานการเบิก (มี Time Stamp) <span class="text-rose-600">*บังคับใส่รูป</span></label>
-                                <input id="swal-wd-img-file" type="file" accept="image/*" capture="environment" class="w-full px-3 py-2 border rounded-xl text-xs bg-slate-50" onchange="app.processTimestampImage(event, 'swal-preview-tool-img', 'swal-wd-tool-img-base64')">
-                                <input type="hidden" id="swal-wd-tool-img-base64">
-                                <div id="swal-preview-tool-img" class="mt-2 text-center"></div>
-                            </div>
                         </div>
                     `,
                     focusConfirm: false,
@@ -1510,16 +1411,11 @@
                     cancelButtonText: 'ยกเลิก',
                     preConfirm: () => {
                         const qty = Number(document.getElementById('swal-wd-qty').value);
-                        const imgBase64 = document.getElementById('swal-wd-tool-img-base64').value;
                         if (qty <= 0 || qty > t.qty) {
                             Swal.showValidationMessage(`กรุณาระบุจำนวนระหว่าง 1 ถึง ${t.qty}`);
                             return false;
                         }
-                        if (!imgBase64) {
-                            Swal.showValidationMessage('กรุณาถ่ายรูปหลักฐานการเบิก (บังคับ)');
-                            return false;
-                        }
-                        return { qty, image: imgBase64 };
+                        return { qty };
                     }
                 });
 
@@ -1533,7 +1429,6 @@
                         toolType: 'tool',
                         toolName: t.name, 
                         qty: formValues.qty, 
-                        image: formValues.image,
                         status: 'รออนุมัติ' 
                     };
                     withdrawHistoryData.unshift(newWithdraw);
@@ -1841,13 +1736,10 @@
                         <td class="p-3 font-mono">${w.date}</td>
                         <td class="p-3 font-bold">${w.user}</td>
                         <td class="p-3">${w.toolName}</td>
-                        <td class="p-3 text-center">
-                            ${w.image ? `<img src="${w.image}" class="w-10 h-10 object-cover rounded-lg border mx-auto cursor-pointer hover:opacity-80 transition" onclick="app.showFullImage('${w.image}', 'หลักฐานการเบิก: ${w.toolName}')">` : '<span class="text-slate-400">-</span>'}
-                        </td>
                         <td class="p-3 text-center">x${w.qty}</td>
                         <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td>
                     </tr>
-                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ไม่มีประวัติ</td></tr>`;
+                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ไม่มีประวัติ</td></tr>`;
             },
 
             renderMyWithdrawStatusTable: function() {
@@ -1856,13 +1748,10 @@
                         <td class="p-3 font-mono">${w.date}</td>
                         <td class="p-3 font-bold">${w.user}</td>
                         <td class="p-3">${w.toolName}</td>
-                        <td class="p-3 text-center">
-                            ${w.image ? `<img src="${w.image}" class="w-10 h-10 object-cover rounded-lg border mx-auto cursor-pointer hover:opacity-80 transition" onclick="app.showFullImage('${w.image}', 'หลักฐานการเบิก: ${w.toolName}')">` : '<span class="text-slate-400">-</span>'}
-                        </td>
                         <td class="p-3 text-center">x${w.qty}</td>
                         <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td>
                     </tr>
-                `).join('') || `<tr><td colspan="6" class="text-center py-6 text-slate-400">ยังไม่มีรายการ</td></tr>`;
+                `).join('') || `<tr><td colspan="5" class="text-center py-6 text-slate-400">ยังไม่มีรายการ</td></tr>`;
             },
 
             renderImportHistoryTable: function() {
@@ -1905,14 +1794,11 @@
                         <td class="p-3 font-mono">${w.date}</td>
                         <td class="p-3 font-bold">${w.user}</td>
                         <td class="p-3">${w.toolName}</td>
-                        <td class="p-3 text-center">
-                            ${w.image ? `<img src="${w.image}" class="w-10 h-10 object-cover rounded-lg border mx-auto cursor-pointer hover:opacity-80 transition" onclick="app.showFullImage('${w.image}', 'หลักฐานการเบิก: ${w.toolName}')">` : '<span class="text-slate-400">-</span>'}
-                        </td>
                         <td class="p-3 text-center">x${w.qty}</td>
                         <td class="p-3 text-center"><span class="badge ${w.status === 'อนุมัติแล้ว' ? 'badge-approved' : 'badge-pending'}">${w.status}</span></td>
                         <td class="p-3 text-right">${w.status === 'รออนุมัติ' ? `<button type="button" onclick="app.updateApprovalStatus('${w.id}', 'อนุมัติแล้ว')" class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded mr-1 font-bold">อนุมัติ</button><button type="button" onclick="app.updateApprovalStatus('${w.id}', 'ไม่อนุมัติ')" class="px-2 py-1 bg-rose-50 text-rose-600 rounded font-bold">ปฏิเสธ</button>` : ''}</td>
                     </tr>
-                `).join('') || `<tr><td colspan="8" class="text-center py-6 text-slate-400">ไม่มีรายการรออนุมัติ</td></tr>`;
+                `).join('') || `<tr><td colspan="7" class="text-center py-6 text-slate-400">ไม่มีรายการรออนุมัติ</td></tr>`;
             },
 
             updateSelectedApprovalCount: function() {
