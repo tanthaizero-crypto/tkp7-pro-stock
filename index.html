@@ -860,11 +860,40 @@
             },
 
             saveLocalData: function() {
-                localStorage.setItem('tkp7_tools', JSON.stringify(toolsData));
-                localStorage.setItem('tkp7_ev', JSON.stringify(evChargersData));
-                localStorage.setItem('tkp7_wd', JSON.stringify(withdrawHistoryData));
-                localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
-                localStorage.setItem('tkp7_users', JSON.stringify(usersData));
+                try {
+                    // ตัดรูปภาพ Base64 ขนาดใหญ่ออกก่อนเซฟลง localStorage เพื่อป้องกัน QuotaExceededError
+                    const cleanWd = withdrawHistoryData.map(item => {
+                        const copy = { ...item };
+                        if (copy.image && copy.image.length > 5000) {
+                            delete copy.image;
+                        }
+                        return copy;
+                    });
+
+                    const cleanEv = evChargersData.map(item => {
+                        const copy = { ...item };
+                        if (copy.image && copy.image.length > 5000) {
+                            delete copy.image;
+                        }
+                        return copy;
+                    });
+
+                    const cleanTools = toolsData.map(item => {
+                        const copy = { ...item };
+                        if (copy.image && copy.image.length > 5000) {
+                            delete copy.image;
+                        }
+                        return copy;
+                    });
+
+                    localStorage.setItem('tkp7_tools', JSON.stringify(cleanTools));
+                    localStorage.setItem('tkp7_ev', JSON.stringify(cleanEv));
+                    localStorage.setItem('tkp7_wd', JSON.stringify(cleanWd));
+                    localStorage.setItem('tkp7_imp', JSON.stringify(importHistoryData));
+                    localStorage.setItem('tkp7_users', JSON.stringify(usersData));
+                } catch (e) {
+                    console.error("LocalStorage Quota Exceeded handled:", e);
+                }
             },
 
             toggleSidebar: function() {
@@ -1211,7 +1240,7 @@
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
                         } catch (e) {
                             console.error("Firestore Withdraw EV Exception:", e);
-                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + e.message, 'warning');
+                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ: ' + e.message, 'warning');
                         }
                     }
 
@@ -1517,7 +1546,7 @@
                             await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').doc(newWithdraw.id).set(newWithdraw);
                         } catch(e){
                             console.error("Firestore Request Withdraw Error:", e);
-                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + e.message, 'warning');
+                            Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ: ' + e.message, 'warning');
                         }
                     }
 
@@ -1760,7 +1789,7 @@
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('ev_chargers').doc(newEVItem.id).set(newEVItem);
                     } catch (err) {
                         console.error("Firebase save EV error:", err);
-                        Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ (บันทึกออฟไลน์แล้ว): ' + err.message, 'warning');
+                        Swal.fire('ข้อผิดพลาด', 'บันทึกลงฐานข้อมูลกลางไม่สำเร็จ: ' + err.message, 'warning');
                     }
                 }
 
@@ -2034,7 +2063,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'บันทึกในเครื่องแล้ว',
-                        text: 'แต่ไม่สามารถส่งไปฐานข้อมูลกลางได้: ' + syncErrorMsg,
+                        text: 'ไม่สามารถส่งไปฐานข้อมูลกลางได้: ' + syncErrorMsg,
                         confirmButtonText: 'รับทราบ',
                         confirmButtonColor: '#e11d48'
                     }).then(() => {
